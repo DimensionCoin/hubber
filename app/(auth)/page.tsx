@@ -300,7 +300,7 @@ const Home = () => {
                 {testimonials.map((testimonial, i) => (
                   <figure key={i} className="relative space-y-4">
                     <blockquote className="text-lg text-zinc-300 italic">
-                      "{testimonial.quote}"
+                      &quot;{testimonial.quote}&quot;
                     </blockquote>
                     <figcaption className="flex items-center gap-4">
                       <div>
