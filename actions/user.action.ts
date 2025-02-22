@@ -18,3 +18,14 @@ export async function createUser(user: any) {
   }
 }
 
+export async function getUser(userId: string) {
+  try {
+    await connect();
+    const user = await User.findOne({
+      clerkId: userId,
+    });
+    return JSON.parse(JSON.stringify(user));
+  } catch (error) {
+    console.log(error);
+  }
+}

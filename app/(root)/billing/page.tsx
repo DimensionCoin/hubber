@@ -1,9 +1,10 @@
+import PricingTiers from '@/components/shared/Pricingcards'
 import React from 'react'
 
 const Billing = () => {
   return (
     <div>
-      Billing page
+        <PricingTiers/>
     </div>
   )
 }

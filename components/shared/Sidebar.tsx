@@ -16,7 +16,7 @@ type NavLinkProps = {
 
 const Sidebar = () => {
   return (
-    <aside className="hidden md:flex flex-col w-50 h-full bg-zinc-900 text-zinc-100 p-5 border-r border-zinc-800 min-h-screen">
+    <aside className="hidden md:flex flex-col w-50  bg-zinc-900 text-zinc-100 p-5 border-r border-zinc-800 min-h-full">
       <nav className="space-y-4">
         <NavLink
           href="/dashboard"

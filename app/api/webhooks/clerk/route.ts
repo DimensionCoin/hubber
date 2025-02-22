@@ -56,6 +56,7 @@ export async function POST(req: Request) {
         lastName: last_name || "",
         createdAt: new Date(created_at),
         subscriptionTier: "free",
+        customerId: "",
         companies: [],
       };
 

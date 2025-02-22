@@ -33,7 +33,7 @@ const Header = () => {
         <NavLink href="#pricing">Pricing</NavLink>
       </nav>
 
-      <div className="hidden md:flex items-center space-x-4">
+      <div className="flex items-center space-x-4">
         <Link href="/sign-in">
           <Button
             variant="ghost"
@@ -49,9 +49,7 @@ const Header = () => {
         </Link>
       </div>
 
-      <Button variant="ghost" size="icon" className="md:hidden text-zinc-400">
-        <Menu className="w-6 h-6" />
-      </Button>
+      
     </header>
   );
 };

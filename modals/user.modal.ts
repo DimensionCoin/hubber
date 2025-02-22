@@ -20,6 +20,10 @@ const UserSchema = new Schema(
       enum: ["free", "basic", "premium"],
       default: "free",
     },
+    customerId: {
+      type: String,
+      default: "",
+    },
     companies: [{ type: Schema.Types.ObjectId, ref: "Company" }], // ✅ Reference instead of embedding
   },
   { timestamps: true }
