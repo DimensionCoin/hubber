@@ -12,19 +12,17 @@ const UserSchema = new Schema(
       required: true,
       unique: true,
     },
-    firstName: {
+    firstName: { type: String },
+    lastName: { type: String },
+    createdAt: { type: Date, required: true, default: Date.now },
+    subscriptionTier: {
       type: String,
+      enum: ["free", "basic", "premium"],
+      default: "free",
     },
-    lastName: {
-      type: String,
-    },
-    createdAt: {
-      type: Date,
-      required: true,
-      default: Date.now, // Fallback in case Clerk does not provide created_at
-    },
+    companies: [{ type: Schema.Types.ObjectId, ref: "Company" }], // ✅ Reference instead of embedding
   },
-  { timestamps: true } // Automatically adds `createdAt` & `updatedAt`
+  { timestamps: true }
 );
 
 const User = models?.User || model("User", UserSchema);
