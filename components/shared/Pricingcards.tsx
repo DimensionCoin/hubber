@@ -4,10 +4,6 @@ import { useEffect, useState } from "react";
 import {
   Check,
   HelpCircle,
-  LineChart,
-  Building2,
-  Users,
-  Bot,
   X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
