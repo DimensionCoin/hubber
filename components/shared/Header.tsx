@@ -7,7 +7,7 @@ import { Button } from "../ui/button";
 const Header = () => {
   const { isLoaded, user } = useUser();
   return (
-    <header className="flex items-center justify-between w-full bg-zinc-900 text-zinc-100 py-6 px-8">
+    <header className="flex items-center justify-between w-full bg-zinc-900 text-zinc-100 py-6 px-4 md:px-8">
       <h2 className="font-bold text-xl bg-clip-text text-transparent bg-gradient-to-r from-teal-400 via-cyan-400 to-violet-500">
         HUBBER
       </h2>
