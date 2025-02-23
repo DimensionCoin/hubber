@@ -3,7 +3,6 @@ import {
   LayoutDashboard,
   Building2,
   Settings,
-  CreditCard,
   User,
 } from "lucide-react";
 import Link from "next/link";

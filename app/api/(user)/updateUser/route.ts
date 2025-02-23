@@ -12,7 +12,14 @@ export async function POST(req: NextRequest) {
       email,
       subscriptionTier,
       newPassword,
-    } = await req.json();
+    }: {
+      clerkId: string;
+      firstName?: string;
+      lastName?: string;
+      email?: string;
+      subscriptionTier?: string;
+      newPassword?: string;
+    } = await req.json(); // ✅ Define types explicitly
 
     if (!clerkId) {
       return NextResponse.json({ error: "Missing user ID" }, { status: 400 });
@@ -21,7 +28,13 @@ export async function POST(req: NextRequest) {
     console.log(`Updating user with Clerk ID: ${clerkId}`);
 
     // ✅ Update MongoDB User
-    const updateFields: Record<string, any> = {};
+    const updateFields: Partial<{
+      firstName: string;
+      lastName: string;
+      email: string;
+      subscriptionTier: string;
+    }> = {};
+
     if (firstName) updateFields.firstName = firstName;
     if (lastName) updateFields.lastName = lastName;
     if (email) updateFields.email = email;
@@ -52,12 +65,12 @@ export async function POST(req: NextRequest) {
       );
 
       if (!passwordResponse.ok) {
-        let errorData = null;
+        let errorData: { errors?: { long_message: string }[] } | null = null;
 
         // ✅ Safely attempt to parse JSON response
         try {
           errorData = await passwordResponse.json();
-        } catch (err) {
+        } catch {
           console.error("Clerk password update failed: Empty response");
         }
 

@@ -27,12 +27,13 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { EmailAddressResource } from "@clerk/types";
 import PricingTiers from "@/components/shared/Pricingcards";
+import Image from "next/image";
 
 export default function Account() {
   const { user, isLoaded } = useUser();
   const { signOut } = useClerk();
   const [isSaving, setIsSaving] = useState(false);
-  const [uploadingImage, setUploadingImage] = useState(false);
+const [uploadingImage, setUploadingImage] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [newPassword, setNewPassword] = useState("");
@@ -179,7 +180,7 @@ const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
     };
     fileReader.readAsDataURL(file);
 
-    setUploadingImage(true);
+    setUploadingImage(true); // ✅ Start loading indicator
     try {
       await user.setProfileImage({ file });
       toast.success("Profile image updated successfully!");
@@ -187,9 +188,10 @@ const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
       console.error("Failed to upload profile picture:", error);
       toast.error("Error uploading profile picture.");
     } finally {
-      setUploadingImage(false);
+      setUploadingImage(false); // ✅ Stop loading indicator
     }
   }
+
 
   async function addNewEmail() {
   if (!user) {
@@ -307,7 +309,7 @@ async function setAsPrimary(emailId: string) {
 
   return (
     <div className="min-h-screen bg-zinc-950/20 rounded-lg">
-      <div className="container max-w-7xl mx-auto px-4 py-6">
+      <div className="container max-w-7xl mx-auto px-2 py-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-2xl font-semibold text-white">
@@ -330,11 +332,22 @@ async function setAsPrimary(emailId: string) {
               <CardContent className="pt-6">
                 <div className="flex flex-col items-center space-y-2">
                   <div className="relative">
-                    <img
-                      src={selectedImage || user?.imageUrl}
+                    <Image
+                      src={
+                        selectedImage || user?.imageUrl || "/default-avatar.png"
+                      } // ✅ Ensures src is always a string
                       alt="Profile"
+                      width={96} // ✅ Next.js requires explicit width & height or layout="intrinsic"
+                      height={96}
                       className="w-24 h-24 rounded-full border-2 border-teal-400 object-cover"
                     />
+
+                    {/* ✅ Show a spinner while uploading */}
+                    {uploadingImage && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full">
+                        <Loader2 className="animate-spin text-white w-6 h-6" />
+                      </div>
+                    )}
                     <label className="absolute bottom-0 right-0 bg-zinc-800 p-2 rounded-full cursor-pointer hover:bg-zinc-700 transition-colors">
                       <Camera className="w-4 h-4 text-white" />
                       <input
@@ -364,7 +377,7 @@ async function setAsPrimary(emailId: string) {
               <CardContent className="space-y-3">
                 {user?.emailAddresses
                   .slice()
-                  .sort((a, b) =>
+                  .sort((a) =>
                     a.id === user.primaryEmailAddressId ? -1 : 1
                   )
                   .map((email) => (
@@ -421,7 +434,7 @@ async function setAsPrimary(emailId: string) {
 
           {/* Main Settings Section */}
           <div className="space-y-12">
-            <Card className="bg-zinc-900 border-zinc-800">
+            <Card className="bg-zinc-900 border-zinc-800 mb-20">
               <CardHeader>
                 <CardTitle className="text-lg font-medium text-white">
                   Personal Information
