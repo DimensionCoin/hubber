@@ -5,7 +5,7 @@ export default function LoadingPage() {
     <div className="relative min-h-screen w-full flex flex-col items-center justify-center bg-zinc-950 text-zinc-100">
       {/* Background gradient and grid overlay to match the landing page */}
       <div className="absolute inset-0 bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950" />
-      <div className="absolute inset-0 bg-[url(/grid.svg)] opacity-[0.02] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
+      <div className="absolute inset-0  opacity-[0.02] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
 
       <div className="relative flex flex-col items-center gap-6 p-4">
         {/* Loading animation */}

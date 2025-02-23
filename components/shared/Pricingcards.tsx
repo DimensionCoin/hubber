@@ -1,11 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  Check,
-  HelpCircle,
-  X,
-} from "lucide-react";
+import { Check, HelpCircle, X, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -35,27 +31,38 @@ interface PricingTier {
   }[];
 }
 
-export default function PricingTiers() {
-  const { user, isLoaded } = useUser(); // ✅ Get Clerk user info
+export default function PricingTiers({ currentTier }: { currentTier: string }) {
+  const { user, isLoaded } = useUser();
   const [activeCard, setActiveCard] = useState(1);
   const [userTier, setUserTier] = useState<string | null>(null);
+  const [isOpen, setIsOpen] = useState(false); // ✅ Modal State
+
+  const [userData, setUserData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    subscriptionTier: "",
+  });
 
   useEffect(() => {
     if (isLoaded && user) {
-      fetchUserSubscription(user.id);
+      fetchUserData(user.id);
     }
   }, [isLoaded, user]);
 
-  // ✅ Fetch user's subscription tier from MongoDB
-  async function fetchUserSubscription(userId: string) {
+  async function fetchUserData(userId: string) {
     try {
-      const userData = await getUser(userId);
-      if (userData?.subscriptionTier) {
-        setUserTier(userData.subscriptionTier.toLowerCase()); // ✅ Ensure lowercase for consistency
-        console.log(userData.subscriptionTier);
+      const data = await getUser(userId);
+      if (data) {
+        setUserData({
+          firstName: data.firstName || "",
+          lastName: data.lastName || "",
+          email: data.email || user?.primaryEmailAddress || "",
+          subscriptionTier: data.subscriptionTier || "free",
+        });
       }
     } catch (error) {
-      console.error("Failed to fetch user subscription:", error);
+      console.error("Error fetching user data:", error);
     }
   }
 
@@ -123,79 +130,107 @@ export default function PricingTiers() {
   }
 
   return (
-    <div className="text-zinc-100  flex flex-col items-center">
-      
-      {/* Header */}
-      <div className="text-center space-y-4 ">
-        <h2 className="text-4xl font-bold tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-teal-400 via-cyan-400 to-violet-500">
-          Choose Your Plan
-        </h2>
-        <p className="text-zinc-400 text-lg max-w-lg mx-auto">
-          Unlock the full potential of your business with the right plan.
-        </p>
-      </div>
+    <>
+      {/* ✅ Trigger Button */}
+      <Button
+        onClick={() => setIsOpen(true)}
+        className="w-full bg-gray-500/20 mt-2 hover:text-black hover:bg-teal-400 text-white py-3 px-4 rounded-md transition"
+      >
+        Subscription Tier:
+        <span className="font-semibold text-teal-300 ">
+          {userData.subscriptionTier.toUpperCase()}
+        </span>
+      </Button>
 
-      {/* Pricing Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6  z-10">
-        {tiers.map((tier) => (
-          <Card
-            key={tier.id}
-            className={cn(
-              "flex flex-col transition-all duration-300 cursor-pointer bg-zinc-900/50 backdrop-blur-lg border border-zinc-800/50 hover:shadow-lg hover:border-primary/50 text-zinc-400 mt-6",
-              activeCard === tier.id &&
-                "border-2 border-primary scale-105 shadow-xl",
-              activeCard !== tier.id && "opacity-80 scale-95"
-            )}
-            onMouseEnter={() => setActiveCard(tier.id)}
+      {/* ✅ Modal */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black/60 flex items-center justify-center p-6 z-50"
+          onClick={() => setIsOpen(false)} // ✅ Click outside to close modal
+        >
+          <div
+            className="relative bg-zinc-950 text-zinc-100 max-w-4xl w-full p-8 rounded-lg shadow-xl"
+            onClick={(e) => e.stopPropagation()} // ✅ Prevent closing when clicking inside modal
           >
-            <CardHeader className="flex-1">
-              <CardTitle className="text-xl capitalize">{tier.name}</CardTitle>
-              <CardDescription>{tier.description}</CardDescription>
-              <div className="flex items-center text-4xl font-bold">
-                {tier.price}
-                <span className="ml-1 text-sm font-normal text-zinc-400">
-                  /Yearly
-                </span>
-              </div>
-            </CardHeader>
+            {/* Close Button */}
+            <button
+              className="absolute top-4 right-4 text-zinc-400 hover:text-white transition"
+              onClick={() => setIsOpen(false)}
+            >
+              <XCircle className="size-6" />
+            </button>
 
-            <CardContent className="flex-1">
-              <ul className="space-y-4 text-sm">
-                {tier.features.map((feature, i) => (
-                  <li key={i} className="flex items-center space-x-3">
-                    {feature.included ? (
-                      <Check className="size-5 text-teal-400" />
-                    ) : (
-                      <X className="size-5 text-zinc-500" />
-                    )}
-                    <span className="flex items-center gap-1">
-                      {feature.text}
-                      {feature.tooltip && (
-                        <HelpCircle className="size-4 text-zinc-500" />
-                      )}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
+            {/* Modal Header */}
+            <div className="text-center space-y-4">
+              <h2 className="text-4xl font-bold tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-teal-400 via-cyan-400 to-violet-500">
+                Choose Your Plan
+              </h2>
+              <p className="text-zinc-400 text-lg">
+                Unlock the full potential of your business with the right plan.
+              </p>
+            </div>
 
-            <CardFooter>
-              <Link href="/sign-up" passHref>
-                <Button
+            {/* Pricing Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+              {tiers.map((tier) => (
+                <Card
+                  key={tier.id}
                   className={cn(
-                    "w-full transition-all duration-300",
-                    activeCard === tier.id
-                      ? "bg-teal-500 text-white"
-                      : "bg-zinc-800 text-zinc-300 hover:bg-zinc-700"
+                    "flex flex-col transition-all duration-300 cursor-pointer bg-zinc-900/50 backdrop-blur-lg border border-zinc-800/50 hover:shadow-lg hover:border-primary/50 text-zinc-400",
+                    activeCard === tier.id &&
+                      "border-2 border-primary scale-105 shadow-xl",
+                    activeCard !== tier.id && "opacity-80 scale-95"
                   )}
+                  onMouseEnter={() => setActiveCard(tier.id)}
                 >
-                  {getButtonText(tier.name)}
-                </Button>
-              </Link>
-            </CardFooter>
-          </Card>
-        ))}
-      </div>
-    </div>
+                  <CardHeader className="flex-1">
+                    <CardTitle className="text-xl capitalize">
+                      {tier.name}
+                    </CardTitle>
+                    <CardDescription>{tier.description}</CardDescription>
+                    <div className="flex items-center text-4xl font-bold">
+                      {tier.price}
+                      <span className="ml-1 text-sm font-normal text-zinc-400">
+                        /Yearly
+                      </span>
+                    </div>
+                  </CardHeader>
+
+                  <CardContent className="flex-1">
+                    <ul className="space-y-4 text-sm">
+                      {tier.features.map((feature, i) => (
+                        <li key={i} className="flex items-center space-x-3">
+                          {feature.included ? (
+                            <Check className="size-5 text-teal-400" />
+                          ) : (
+                            <X className="size-5 text-zinc-500" />
+                          )}
+                          <span className="flex items-center gap-1">
+                            {feature.text}
+                            {feature.tooltip && (
+                              <HelpCircle className="size-4 text-zinc-500" />
+                            )}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+
+                  <CardFooter>
+                    <Link href="/sign-up" passHref>
+                      {currentTier !== tier.name && (
+                        <Button className="w-full bg-teal-500 text-white">
+                          {getButtonText(tier.name)}
+                        </Button>
+                      )}
+                    </Link>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }

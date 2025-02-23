@@ -23,18 +23,9 @@ const Sidebar = () => {
           icon={<LayoutDashboard />}
           label="Dashboard"
         />
-        <NavLink
-          href="/create"
-          icon={<Building2 />}
-          label="Create Company"
-        />
-        <NavLink
-          href="/manage"
-          icon={<Settings />}
-          label="Manage Company"
-        />
+        <NavLink href="/create" icon={<Building2 />} label="Create Company" />
+        <NavLink href="/analytics" icon={<Settings />} label="Analytics" />
         <NavLink href="/account" icon={<User />} label="Account" />
-        <NavLink href="/billing" icon={<CreditCard />} label="Billing" />
       </nav>
     </aside>
   );

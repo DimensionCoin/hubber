@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { ClerkProvider, } from "@clerk/nextjs";
+import { ClerkProvider } from "@clerk/nextjs";
+import { Toaster } from "react-hot-toast"; // ✅ Import Toaster
 import "../globals.css";
 import Sidebar from "@/components/shared/Sidebar";
 import BottomBar from "@/components/shared/BottomBar";
@@ -30,6 +31,9 @@ export default function RootLayout({
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased bg-zinc-900/90`}
         >
+          {/* ✅ Toast Notifications */}
+          <Toaster position="top-right" reverseOrder={false} />
+
           <div className="flex-1 flex flex-col">
             <Header />
             <div className="flex min-h-screen">
