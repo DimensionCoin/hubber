@@ -2,18 +2,23 @@
 
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  ResponsiveContainer,
-} from "recharts"; // ✅ Correct import
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from "recharts"; // ✅ Correct import
 
 import { Users, DollarSign, TrendingUp, ArrowUpRight } from "lucide-react";
 
+// Define the type for the company data
+interface Company {
+  id: number;
+  name: string;
+  employees: number;
+  revenue: number;
+  growth: string;
+  location: string;
+  status: string;
+}
+
 // Placeholder data
-const companies = [
+const companies: Company[] = [
   {
     id: 1,
     name: "TechCorp Solutions",
@@ -52,7 +57,13 @@ const companies = [
   },
 ];
 
-const chartData = companies.map((company) => ({
+// Define the type for the chart data
+interface ChartData {
+  name: string;
+  revenue: number;
+}
+
+const chartData: ChartData[] = companies.map((company) => ({
   name: company.name,
   revenue: company.revenue / 1000000, // Convert to millions
 }));
@@ -83,7 +94,7 @@ export default function Dashboard() {
                   fontSize={12}
                   tickLine={false}
                   axisLine={false}
-                  tickFormatter={(value: any) => `$${value}M`}
+                  tickFormatter={(value: number) => `$${value}M`} // ✅ Properly typed
                 />
                 <Bar
                   dataKey="revenue"
