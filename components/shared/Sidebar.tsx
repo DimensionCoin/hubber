@@ -2,7 +2,7 @@
 import {
   LayoutDashboard,
   Building2,
-  Settings,
+  ChartBar,
   User,
 } from "lucide-react";
 import Link from "next/link";
@@ -23,7 +23,7 @@ const Sidebar = () => {
           label="Dashboard"
         />
         <NavLink href="/create" icon={<Building2 />} label="Create Company" />
-        <NavLink href="/analytics" icon={<Settings />} label="Analytics" />
+        <NavLink href="/analytics" icon={<ChartBar />} label="Analytics" />
         <NavLink href="/account" icon={<User />} label="Account" />
       </nav>
     </aside>
