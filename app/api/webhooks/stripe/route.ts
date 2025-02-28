@@ -11,7 +11,7 @@ export const runtime = "nodejs";
 export async function POST(request: NextRequest) {
   await connect();
   const body = await request.text();
-  const signature = (await headers()).get("Stripe-Signature") as string;
+  const signature = (await headers()).get("Stripe-Signature") as string; // ✅ Fixed
 
   if (!process.env.STRIPE_WEBHOOK_SECRET) {
     console.error("❌ Missing STRIPE_WEBHOOK_SECRET environment variable");
@@ -48,20 +48,30 @@ export async function POST(request: NextRequest) {
       return new NextResponse("Invalid subscription data", { status: 400 });
     }
 
-    // 🔹 Retrieve the Stripe customer to get the email
-    const customer = await stripe.customers.retrieve(customerId);
-    const email = (customer as Stripe.Customer).email;
+    // 🔹 Retrieve user from MongoDB by customerId
+    let user = await User.findOne({ customerId });
 
-    if (!email) {
-      console.error("❌ Could not retrieve email from Stripe customer.");
-      return new NextResponse("Invalid customer data", { status: 400 });
+    // 🔹 If no user found, retrieve by email from Stripe
+    if (!user) {
+      const customer = await stripe.customers.retrieve(customerId);
+      const email = (customer as Stripe.Customer).email;
+
+      if (!email) {
+        console.error("❌ Could not retrieve email from Stripe customer.");
+        return new NextResponse("Invalid customer data", { status: 400 });
+      }
+
+      user = await User.findOne({ email });
+
+      if (user) {
+        // 🔹 Store the missing `customerId` in the database
+        user.customerId = customerId;
+        await user.save();
+      }
     }
 
-    // 🔹 Find user in MongoDB by email (if customerId is missing)
-    let user = await User.findOne({ email });
-
     if (!user) {
-      console.error(`❌ No user found with email: ${email}`);
+      console.error(`❌ No user found with customerId: ${customerId}`);
       return new NextResponse("User not found", { status: 400 });
     }
 
@@ -76,24 +86,14 @@ export async function POST(request: NextRequest) {
       return new NextResponse("Invalid price ID", { status: 400 });
     }
 
-    // 🔹 Update user subscription in MongoDB
-    const updatedUser = await User.findOneAndUpdate(
-      { email },
-      {
-        subscriptionTier: newSubscriptionTier,
-        customerId: customerId, // ✅ Store customerId in MongoDB
-      },
+    // 🔹 Update user's subscription in MongoDB
+    await User.findOneAndUpdate(
+      { customerId },
+      { subscriptionTier: newSubscriptionTier },
       { new: true }
     );
 
-    if (!updatedUser) {
-      console.error("❌ No user found for email:", email);
-      return new NextResponse("User not found", { status: 400 });
-    }
-
-    console.log(
-      `✅ User ${updatedUser.clerkId} upgraded to ${newSubscriptionTier} with Stripe customer ID: ${customerId}`
-    );
+    console.log(`✅ User ${user.clerkId} upgraded to ${newSubscriptionTier}`);
   }
 
   // 🔹 Handle subscription cancellations
@@ -101,7 +101,6 @@ export async function POST(request: NextRequest) {
     const subscription = event.data.object as Stripe.Subscription;
     const customerId = subscription.customer as string;
 
-    // 🔹 Find user by `customerId` and reset to free tier
     const updatedUser = await User.findOneAndUpdate(
       { customerId },
       { subscriptionTier: "free" }, // Reset to free tier

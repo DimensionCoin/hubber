@@ -1,6 +1,8 @@
 "use server";
 
 import { stripe } from "@/lib/stripe";
+import User from "@/modals/user.modal";
+import { connect } from "@/db";
 
 type Props = {
   userId: string;
@@ -14,6 +16,8 @@ export const subscribe = async ({ userId, email, priceId }: Props) => {
   }
 
   try {
+    await connect();
+
     // 🔹 Retrieve or create a Stripe customer
     const existingCustomer = await stripe.customers.list({ email, limit: 1 });
     let customerId =
@@ -24,12 +28,19 @@ export const subscribe = async ({ userId, email, priceId }: Props) => {
       customerId = customer.id;
     }
 
+    // 🔹 Store `customerId` in MongoDB **before creating the session**
+    await User.findOneAndUpdate(
+      { clerkId: userId },
+      { customerId },
+      { new: true }
+    );
+
     // 🔹 Create a Stripe Checkout Session
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       payment_method_types: ["card"],
       line_items: [{ price: priceId, quantity: 1 }],
-      metadata: { userId }, // ✅ Store userId in metadata for webhook
+      metadata: { userId, customerId }, // ✅ Ensure metadata contains userId & customerId
       mode: "subscription",
       billing_address_collection: "required",
       customer_update: { name: "auto", address: "auto" },
