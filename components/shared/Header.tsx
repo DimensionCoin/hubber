@@ -5,8 +5,8 @@ import { Bell } from "lucide-react";
 import { Button } from "../ui/button";
 import LoadingPage from "./Loader";
 import PricingTiers from "./Pricingcards";
-import { getUser } from "@/actions/user.action"; // ✅ Imported getUser from backend
-import { useState, useEffect } from "react"; // ✅ Import useState and useEffect
+import { getUser } from "@/actions/user.action";
+import { useState, useEffect, useCallback } from "react"; // ✅ Import useCallback
 
 const Header = () => {
   const { user, isLoaded } = useUser();
@@ -15,30 +15,35 @@ const Header = () => {
     firstName: "",
     lastName: "",
     email: "",
-    subscriptionTier: "",
+    subscriptionTier: "free",
   });
 
+  // ✅ Memoize fetchUserData using useCallback
+  const fetchUserData = useCallback(
+    async (userId: string) => {
+      try {
+        const data = await getUser(userId);
+        if (data) {
+          setUserData({
+            firstName: data.firstName || "",
+            lastName: data.lastName || "",
+            email: data.email || user?.primaryEmailAddress || "",
+            subscriptionTier: data.subscriptionTier || "free",
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    },
+    [user]
+  );
+
+  // ✅ Add fetchUserData to dependency array
   useEffect(() => {
     if (isLoaded && user) {
       fetchUserData(user.id);
     }
-  }, [isLoaded, user]);
-
-  async function fetchUserData(userId: string) {
-    try {
-      const data = await getUser(userId); // ✅ Using imported getUser function
-      if (data) {
-        setUserData({
-          firstName: data.firstName || "",
-          lastName: data.lastName || "",
-          email: data.email || user?.primaryEmailAddress || "",
-          subscriptionTier: data.subscriptionTier || "free",
-        });
-      }
-    } catch (error) {
-      console.error("Error fetching user data:", error);
-    }
-  }
+  }, [isLoaded, user, fetchUserData]);
 
   if (!isLoaded) {
     return (
@@ -49,7 +54,7 @@ const Header = () => {
   }
 
   return (
-    <header className="flex  justify-between items-center w-full bg-zinc-900 text-zinc-100 py-6 px-4 md:px-8">
+    <header className="flex justify-between items-center w-full bg-zinc-900 text-zinc-100 py-6 px-4 md:px-8">
       <h2 className="font-bold text-xl bg-clip-text text-transparent bg-gradient-to-r from-teal-400 via-cyan-400 to-violet-500">
         HUBBER
       </h2>

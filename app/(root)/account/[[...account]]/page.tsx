@@ -1,6 +1,6 @@
 "use client";
 
-import  React, {useRef} from "react";
+import  React, {useCallback, useRef} from "react";
 
 import { useEffect, useState } from "react";
 import { useUser, useClerk } from "@clerk/nextjs";
@@ -33,17 +33,16 @@ export default function Account() {
   const { user, isLoaded } = useUser();
   const { signOut } = useClerk();
   const [isSaving, setIsSaving] = useState(false);
-const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [newEmail, setNewEmail] = useState("");
-const [showOtpModal, setShowOtpModal] = useState(false);
-const [emailCode, setEmailCode] = useState(["", "", "", "", "", ""]);
-const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [emailCode, setEmailCode] = useState(["", "", "", "", "", ""]);
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const [emailObj, setEmailObj] = useState<EmailAddressResource | null>(null);
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
-
 
   const [userData, setUserData] = useState({
     firstName: "",
@@ -52,27 +51,32 @@ const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
     subscriptionTier: "",
   });
 
+  // ✅ Memoize fetchUserData using useCallback
+  const fetchUserData = useCallback(
+    async (userId: string) => {
+      try {
+        const data = await getUser(userId);
+        if (data) {
+          setUserData({
+            firstName: data.firstName || "",
+            lastName: data.lastName || "",
+            email: data.email || user?.primaryEmailAddress || "",
+            subscriptionTier: data.subscriptionTier || "free",
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    },
+    [user]
+  );
+
+  // ✅ Add fetchUserData to dependency array
   useEffect(() => {
     if (isLoaded && user) {
       fetchUserData(user.id);
     }
-  }, [isLoaded, user]);
-
-  async function fetchUserData(userId: string) {
-    try {
-      const data = await getUser(userId);
-      if (data) {
-        setUserData({
-          firstName: data.firstName || "",
-          lastName: data.lastName || "",
-          email: data.email || user?.primaryEmailAddress || "",
-          subscriptionTier: data.subscriptionTier || "free",
-        });
-      }
-    } catch (error) {
-      console.error("Error fetching user data:", error);
-    }
-  }
+  }, [isLoaded, user, fetchUserData]);
 
   async function updateUserProfile() {
     if (!user) {
@@ -164,7 +168,6 @@ const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
     }
   }
 
-
   async function handleImageUpload(event: React.ChangeEvent<HTMLInputElement>) {
     if (!user) {
       toast.error("User not found. Please log in.");
@@ -192,120 +195,117 @@ const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
     }
   }
 
-
   async function addNewEmail() {
-  if (!user) {
-    toast.error("User not found. Please log in.");
-    return;
-  }
+    if (!user) {
+      toast.error("User not found. Please log in.");
+      return;
+    }
 
-  if (!newEmail.includes("@")) {
-    toast.error("Enter a valid email address.");
-    return;
-  }
+    if (!newEmail.includes("@")) {
+      toast.error("Enter a valid email address.");
+      return;
+    }
 
-  try {
-    // ✅ Step 1: Add new email (unverified)
-    const res = await user.createEmailAddress({ email: newEmail });
-    await user.reload();
+    try {
+      // ✅ Step 1: Add new email (unverified)
+      const res = await user.createEmailAddress({ email: newEmail });
+      await user.reload();
 
-    // ✅ Step 2: Get the newly added email object
-    const emailAddress = user.emailAddresses.find((a) => a.id === res.id);
-    if (!emailAddress) {
+      // ✅ Step 2: Get the newly added email object
+      const emailAddress = user.emailAddresses.find((a) => a.id === res.id);
+      if (!emailAddress) {
+        toast.error("Failed to add email.");
+        return;
+      }
+
+      setEmailObj(emailAddress);
+
+      // ✅ Step 3: Send verification email
+      await emailAddress.prepareVerification({ strategy: "email_code" });
+
+      toast.success("Verification code sent to your email!");
+      setShowOtpModal(true); // ✅ Open OTP modal
+    } catch (error) {
+      console.error("Error adding email:", error);
       toast.error("Failed to add email.");
+    }
+  }
+
+  const handleChange = (index: number, value: string) => {
+    if (!/^\d?$/.test(value)) return;
+    const newOtp = [...emailCode];
+    newOtp[index] = value;
+    setEmailCode(newOtp);
+
+    if (value !== "" && index < 5) {
+      inputRefs.current[index + 1]?.focus();
+    }
+  };
+
+  async function verifyEmail() {
+    if (!emailObj) {
+      toast.error("Email verification failed.");
       return;
     }
 
-    setEmailObj(emailAddress);
+    try {
+      const verificationResult = await emailObj.attemptVerification({
+        code: emailCode.join(""),
+      });
 
-    // ✅ Step 3: Send verification email
-    await emailAddress.prepareVerification({ strategy: "email_code" });
-
-    toast.success("Verification code sent to your email!");
-    setShowOtpModal(true); // ✅ Open OTP modal
-  } catch (error) {
-    console.error("Error adding email:", error);
-    toast.error("Failed to add email.");
-  }
-}
-
-const handleChange = (index: number, value: string) => {
-  if (!/^\d?$/.test(value)) return;
-  const newOtp = [...emailCode];
-  newOtp[index] = value;
-  setEmailCode(newOtp);
-
-  if (value !== "" && index < 5) {
-    inputRefs.current[index + 1]?.focus();
-  }
-};
-
-async function verifyEmail() {
-  if (!emailObj) {
-    toast.error("Email verification failed.");
-    return;
-  }
-
-  try {
-    const verificationResult = await emailObj.attemptVerification({
-      code: emailCode.join(""),
-    });
-
-    if (verificationResult?.verification.status === "verified") {
-      toast.success("Email verified successfully!");
-      setShowOtpModal(false); // ✅ Close modal
-      setNewEmail(""); // ✅ Clear input
-      setEmailCode(["", "", "", "", "", ""]); // ✅ Reset OTP
-    } else {
-      toast.error("Incorrect verification code.");
+      if (verificationResult?.verification.status === "verified") {
+        toast.success("Email verified successfully!");
+        setShowOtpModal(false); // ✅ Close modal
+        setNewEmail(""); // ✅ Clear input
+        setEmailCode(["", "", "", "", "", ""]); // ✅ Reset OTP
+      } else {
+        toast.error("Incorrect verification code.");
+      }
+    } catch (error) {
+      console.error("Verification failed:", error);
+      toast.error("Invalid verification code.");
     }
-  } catch (error) {
-    console.error("Verification failed:", error);
-    toast.error("Invalid verification code.");
-  }
-}
-
-
-async function deleteEmail(emailId: string) {
-  if (!user) {
-    toast.error("User not found.");
-    return;
   }
 
-  try {
-    const emailToDelete = user.emailAddresses.find(
-      (email) => email.id === emailId
-    );
-    if (!emailToDelete) {
-      toast.error("Email not found.");
+  async function deleteEmail(emailId: string) {
+    if (!user) {
+      toast.error("User not found.");
       return;
     }
 
-    await emailToDelete.destroy();
-    toast.success("Email deleted!");
-    await user.reload();
-  } catch (error) {
-    console.error("Failed to delete email:", error);
-    toast.error("Error deleting email.");
-  }
-}
+    try {
+      const emailToDelete = user.emailAddresses.find(
+        (email) => email.id === emailId
+      );
+      if (!emailToDelete) {
+        toast.error("Email not found.");
+        return;
+      }
 
-async function setAsPrimary(emailId: string) {
-  if (!user) {
-    toast.error("User not found.");
-    return;
+      await emailToDelete.destroy();
+      toast.success("Email deleted!");
+      await user.reload();
+    } catch (error) {
+      console.error("Failed to delete email:", error);
+      toast.error("Error deleting email.");
+    }
   }
 
-  try {
-    await user.update({ primaryEmailAddressId: emailId });
-    toast.success("Primary email updated!");
-    await user.reload();
-  } catch (error) {
-    console.error("Failed to update primary email:", error);
-    toast.error("Error updating primary email.");
-  }
-}
+  async function setAsPrimary(emailId: string) {
+    if (!user) {
+      toast.error("User not found.");
+      return;
+    }
 
+    try {
+      await user.update({ primaryEmailAddressId: emailId });
+      toast.success("Primary email updated!");
+      await user.reload();
+    } catch (error) {
+      console.error("Failed to update primary email:", error);
+      toast.error("Error updating primary email.");
+    }
+  }
 
   return (
     <div className="min-h-screen bg-zinc-950/20 rounded-lg min-w-full">
@@ -377,9 +377,7 @@ async function setAsPrimary(emailId: string) {
               <CardContent className="space-y-3">
                 {user?.emailAddresses
                   .slice()
-                  .sort((a) =>
-                    a.id === user.primaryEmailAddressId ? -1 : 1
-                  )
+                  .sort((a) => (a.id === user.primaryEmailAddressId ? -1 : 1))
                   .map((email) => (
                     <div
                       key={email.id}
