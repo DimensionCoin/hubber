@@ -8,7 +8,7 @@ import { connect } from "@/db";
 
 export const runtime = "nodejs";
 
-// ✅ Allow only POST requests to prevent 405 errors
+// ✅ Handle only POST requests
 export async function POST(request: NextRequest) {
   try {
     await connect();
@@ -37,22 +37,24 @@ export async function POST(request: NextRequest) {
 
     console.log(`🔔 Stripe Webhook Received: ${event.type}`);
 
-    // ✅ Handle successful payment before updating subscription tier
-    if (event.type === "invoice.payment_succeeded") {
-      const invoice = event.data.object as Stripe.Invoice;
-      const customerId = invoice.customer as string;
-      const subscriptionId = invoice.subscription as string;
+    // ✅ Handle Checkout Session Completion
+    if (event.type === "checkout.session.completed") {
+      const session = event.data.object as Stripe.Checkout.Session;
+      const customerId = session.customer as string;
+      const subscriptionId = session.subscription as string;
 
       if (!customerId || !subscriptionId) {
-        console.error("❌ Missing customerId or subscriptionId in invoice.");
-        return new NextResponse("Invalid invoice data", { status: 400 });
+        console.error(
+          "❌ Missing customerId or subscriptionId in checkout session."
+        );
+        return new NextResponse("Invalid session data", { status: 400 });
       }
 
       console.log(
-        `✅ Payment confirmed for customer: ${customerId}, subscription: ${subscriptionId}`
+        `✅ Checkout completed for customer: ${customerId}, subscription: ${subscriptionId}`
       );
 
-      // 🔹 Get the associated subscription to extract priceId
+      // 🔹 Retrieve the subscription details to extract priceId
       const subscription = await stripe.subscriptions.retrieve(subscriptionId);
       const priceId = subscription.items.data?.[0]?.price?.id;
 
@@ -137,6 +139,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // ✅ Handle Subscription Cancellation
+    else if (event.type === "customer.subscription.deleted") {
+      const subscription = event.data.object as Stripe.Subscription;
+      const customerId = subscription.customer as string;
+
+      console.log(
+        `📌 Subscription canceled for customer ${customerId}. Resetting tier to free.`
+      );
+
+      const updatedUser = await User.findOneAndUpdate(
+        { customerId },
+        { subscriptionTier: "free" },
+        { new: true }
+      );
+
+      if (!updatedUser) {
+        console.error("❌ No user found for customer ID:", customerId);
+      } else {
+        console.log(`✅ User ${updatedUser.clerkId} downgraded to Free tier.`);
+      }
+    }
+
     revalidatePath("/", "layout");
     return new NextResponse("Webhook processed successfully", { status: 200 });
   } catch (error) {
@@ -145,7 +169,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// ✅ Add OPTIONS handler to fix webhook failures on Vercel
+// ✅ Fix Webhook Failing (405 Method Not Allowed)
 export function OPTIONS() {
   return new NextResponse("OK", { status: 200 });
 }
