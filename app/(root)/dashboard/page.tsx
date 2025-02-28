@@ -70,7 +70,7 @@ const chartData: ChartData[] = companies.map((company) => ({
 
 export default function Dashboard() {
   return (
-    <div className="container mx-auto p-6 space-y-8">
+    <div className="container mx-auto p-2 space-y-8">
       {/* Revenue Chart */}
       <Card className="p-6 bg-zinc-900 border-zinc-800">
         <CardHeader>

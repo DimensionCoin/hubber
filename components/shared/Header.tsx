@@ -4,11 +4,42 @@ import { CiLogout } from "react-icons/ci";
 import { Bell } from "lucide-react";
 import { Button } from "../ui/button";
 import LoadingPage from "./Loader";
+import PricingTiers from "./Pricingcards";
+import { getUser } from "@/actions/user.action"; // ✅ Imported getUser from backend
+import { useState, useEffect } from "react"; // ✅ Import useState and useEffect
 
 const Header = () => {
-  const { isLoaded, user } = useUser();
+  const { user, isLoaded } = useUser();
 
-  // ✅ Show a loading state when Clerk is not loaded yet
+  const [userData, setUserData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    subscriptionTier: "",
+  });
+
+  useEffect(() => {
+    if (isLoaded && user) {
+      fetchUserData(user.id);
+    }
+  }, [isLoaded, user]);
+
+  async function fetchUserData(userId: string) {
+    try {
+      const data = await getUser(userId); // ✅ Using imported getUser function
+      if (data) {
+        setUserData({
+          firstName: data.firstName || "",
+          lastName: data.lastName || "",
+          email: data.email || user?.primaryEmailAddress || "",
+          subscriptionTier: data.subscriptionTier || "free",
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    }
+  }
+
   if (!isLoaded) {
     return (
       <div className="flex items-center justify-center w-full min-h-screen bg-black text-zinc-100">
@@ -27,15 +58,20 @@ const Header = () => {
         <SignedIn>
           {user && (
             <div className="flex gap-4 items-center">
-              <Button variant="ghost" size="icon" className="relative">
-                <Bell className="h-5 w-5" />
-                <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-primary" />
-                <span className="sr-only">View notifications</span>
-              </Button>
+              <div>
+                <PricingTiers currentTier={userData.subscriptionTier} />
+              </div>
+              <div>
+                <Button variant="ghost" size="icon" className="relative">
+                  <Bell className="h-5 w-5" />
+                  <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-primary" />
+                  <span className="sr-only">View notifications</span>
+                </Button>
+              </div>
 
               <div className="flex items-center gap-2">
                 <UserButton />
-                <span>{user.fullName}</span>
+                <span>{user.firstName}</span>
               </div>
             </div>
           )}

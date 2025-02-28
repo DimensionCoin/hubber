@@ -308,8 +308,8 @@ async function setAsPrimary(emailId: string) {
 
 
   return (
-    <div className="min-h-screen bg-zinc-950/20 rounded-lg">
-      <div className="container max-w-7xl mx-auto px-2 py-6">
+    <div className="min-h-screen bg-zinc-950/20 rounded-lg min-w-full">
+      <div className="container  mx-auto px-2 py-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-2xl font-semibold text-white">

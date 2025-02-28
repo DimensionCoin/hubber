@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import { Check, HelpCircle, X, XCircle } from "lucide-react";
+import { useState } from "react";
+import { Check, HelpCircle, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,143 +11,98 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import Link from "next/link";
-import { getUser } from "@/actions/user.action";
 import { useUser } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
+import { subscribe } from "@/actions/stripe.actions";
 
-// 🔹 Helper function for class merging
-const cn = (...classes: (string | boolean | undefined)[]) =>
-  classes.filter(Boolean).join(" ");
-
-// 🔹 Define `PricingTier` interface to avoid unused warning
-interface PricingTier {
-  id: number;
-  name: string;
-  description: string;
-  price: string;
-  features: {
-    text: string;
-    included: boolean;
-    tooltip?: string;
-  }[];
+// Define Props
+interface PricingTiersProps {
+  currentTier: string;
 }
 
-export default function PricingTiers({ currentTier }: { currentTier: string }) {
-  const { user, isLoaded } = useUser();
-  const [activeCard, setActiveCard] = useState(1);
+const PricingTiers: React.FC<PricingTiersProps> = ({ currentTier }) => {
+  const { user, isSignedIn } = useUser();
   const [isOpen, setIsOpen] = useState(false);
+  const router = useRouter();
 
-  const [userData, setUserData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    subscriptionTier: "free",
-  });
-
-  // 🔹 Stable fetch function
-  const fetchUserData = useCallback(
-    async (userId: string) => {
-      try {
-        const data = await getUser(userId);
-        if (data) {
-          setUserData({
-            firstName: data.firstName || "",
-            lastName: data.lastName || "",
-            email: data.email || user?.primaryEmailAddress || "",
-            subscriptionTier: data.subscriptionTier || "free",
-          });
-        }
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-      }
-    },
-    [user]
-  );
-
-  // 🔹 Fetch user data when user is loaded
-  useEffect(() => {
-    if (isLoaded && user) {
-      fetchUserData(user.id);
-    }
-  }, [isLoaded, user, fetchUserData]);
-
-  // 🔹 Subscription Plans
-  const tiers: PricingTier[] = [
+  // Subscription Plans
+  const tiers = [
     {
       id: 0,
       name: "free",
       description: "Perfect for getting started",
       price: "$0",
       features: [
-        { text: "1 Company", included: true },
-        { text: "1 Employee per company", included: true },
-        { text: "Basic dashboard", included: true },
-        {
-          text: "Email support",
-          included: false,
-          tooltip: "Available on paid plans",
-        },
+        "1 Company",
+        "1 Employee per company",
+        "Basic dashboard",
+        "Email support (Paid Only)",
       ],
     },
     {
       id: 1,
-      name: "business",
+      name: "basic",
       description: "For growing businesses",
       price: "$150",
       features: [
-        { text: "5 Companies", included: true },
-        { text: "5 Employees per company", included: true },
-        {
-          text: "Advanced dashboard",
-          included: true,
-          tooltip: "More insights & analytics",
-        },
-        {
-          text: "Priority email support",
-          included: true,
-          tooltip: "Faster response times",
-        },
+        "5 Companies",
+        "5 Employees per company",
+        "Advanced dashboard",
+        "Priority email support",
       ],
     },
     {
       id: 2,
-      name: "enterprise",
+      name: "premium",
       description: "For large enterprises",
       price: "$250",
       features: [
-        { text: "Unlimited Companies", included: true },
-        { text: "Unlimited Employees", included: true },
-        {
-          text: "Enterprise dashboard",
-          included: true,
-          tooltip: "Full customization & control",
-        },
-        {
-          text: "24/7 phone & email support",
-          included: true,
-          tooltip: "Dedicated support team",
-        },
+        "Unlimited Companies",
+        "Unlimited Employees",
+        "Enterprise dashboard",
+        "24/7 phone & email support",
       ],
     },
   ];
 
+  const handleSubscribe = async (tier: "basic" | "premium") => {
+    if (!isSignedIn) return alert("Please sign in to subscribe");
+
+    const priceId =
+      tier === "basic"
+        ? process.env.NEXT_PUBLIC_STRIPE_BASIC_PRICE_ID
+        : process.env.NEXT_PUBLIC_STRIPE_PREMIUM_PRICE_ID;
+
+    const url = await subscribe({
+      userId: user?.id || "",
+      email: user?.emailAddresses[0]?.emailAddress || "",
+      priceId: priceId!,
+    });
+
+    if (url) {
+      router.push(url);
+    } else {
+      alert("Failed to subscribe");
+    }
+  };
+
   return (
     <>
-      {/* Trigger Button */}
+      {/* Button to Open Modal */}
       <Button
         onClick={() => setIsOpen(true)}
         className="w-full bg-gray-500/20 mt-2 hover:text-black hover:bg-teal-400 text-white py-3 px-4 rounded-md transition"
       >
-        Subscription Tier:
+        Tier:
         <span className="font-semibold text-teal-300 ml-2">
-          {userData.subscriptionTier.toUpperCase()}
+          {currentTier.toUpperCase()}
         </span>
       </Button>
 
       {/* Modal */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/60 z-50 overflow-y-auto flex items-center justify-center p-6"
+          className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-6"
           onClick={() => setIsOpen(false)}
         >
           <div
@@ -180,15 +135,7 @@ export default function PricingTiers({ currentTier }: { currentTier: string }) {
                 {tiers.map((tier) => (
                   <Card
                     key={tier.id}
-                    className={cn(
-                      "flex flex-col transition-all duration-300 cursor-pointer bg-zinc-900/50 backdrop-blur-lg border border-zinc-800/50 hover:shadow-lg hover:border-primary/50 text-zinc-400",
-                      activeCard === tier.id &&
-                        "border-2 border-primary shadow-xl",
-                      activeCard === tier.id
-                        ? "lg:scale-105"
-                        : "lg:scale-95 lg:opacity-80"
-                    )}
-                    onMouseEnter={() => setActiveCard(tier.id)}
+                    className="flex flex-col bg-zinc-900/50 border border-zinc-800/50 hover:shadow-lg hover:border-primary/50 text-zinc-400 p-6 rounded-lg"
                   >
                     <CardHeader>
                       <CardTitle className="text-xl capitalize text-white">
@@ -209,29 +156,25 @@ export default function PricingTiers({ currentTier }: { currentTier: string }) {
                       <ul className="space-y-3 text-sm">
                         {tier.features.map((feature, i) => (
                           <li key={i} className="flex items-center gap-2">
-                            {feature.included ? (
-                              <Check className="h-5 w-5 text-teal-400 shrink-0" />
-                            ) : (
-                              <X className="h-5 w-5 text-zinc-500 shrink-0" />
-                            )}
-                            <span className="flex items-center gap-1">
-                              {feature.text}
-                              {feature.tooltip && (
-                                <HelpCircle className="h-4 w-4 text-zinc-500" />
-                              )}
-                            </span>
+                            <Check className="h-5 w-5 text-teal-400 shrink-0" />
+                            <span>{feature}</span>
                           </li>
                         ))}
                       </ul>
                     </CardContent>
 
+                    {/* Subscription Button Logic */}
                     <CardFooter>
-                      {currentTier !== tier.name && (
+                      {currentTier !== tier.name && tier.name !== "free" && (
                         <Button
+                          onClick={() =>
+                            handleSubscribe(
+                              tier.name === "basic" ? "basic" : "premium"
+                            )
+                          }
                           className="w-full bg-teal-500 hover:bg-teal-600 text-white"
-                          asChild
                         >
-                          <Link href="/sign-up">Buy Now</Link>
+                          Subscribe
                         </Button>
                       )}
                     </CardFooter>
@@ -244,4 +187,6 @@ export default function PricingTiers({ currentTier }: { currentTier: string }) {
       )}
     </>
   );
-}
+};
+
+export default PricingTiers;
