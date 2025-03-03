@@ -8,10 +8,6 @@ import {
 import Link from "next/link";
 import { FC } from "react";
 
-type BottomNavLinkProps = {
-  href: string;
-  icon: React.ReactNode;
-};
 
 const BottomBar: FC = () => {
   return (

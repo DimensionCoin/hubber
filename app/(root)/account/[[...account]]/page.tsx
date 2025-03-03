@@ -13,7 +13,7 @@ import {
   Loader2,
   Save,
   Camera,
-  LogOut,
+
   Lock,
   Trash2,
   Star,
@@ -32,7 +32,6 @@ import {useRouter} from "next/navigation";
 
 export default function Account() {
   const { user, isLoaded } = useUser();
-  const { signOut } = useClerk();
   const [isSaving, setIsSaving] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);

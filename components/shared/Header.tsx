@@ -4,37 +4,19 @@ import { CiLogout } from "react-icons/ci";
 import { Bell } from "lucide-react";
 import { Button } from "../ui/button";
 import LoadingPage from "./Loader";
-import PricingTiers from "./Pricingcards";
+import {  useEffect, useCallback } from "react";
 import { getUser } from "@/actions/user.action";
-import { useState, useEffect, useCallback } from "react";
 
 const Header = () => {
   const { user, isLoaded } = useUser();
-  const [userData, setUserData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    subscriptionTier: "free",
-  });
 
-  const fetchUserData = useCallback(
-    async (userId: string) => {
-      try {
-        const data = await getUser(userId);
-        if (data) {
-          setUserData({
-            firstName: data.firstName || "",
-            lastName: data.lastName || "",
-            email: data.email || user?.primaryEmailAddress || "",
-            subscriptionTier: data.subscriptionTier || "free",
-          });
-        }
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-      }
-    },
-    [user]
-  );
+  const fetchUserData = useCallback(async (userId: string) => {
+    try {
+      await getUser(userId); // Removed unused state update
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    }
+  }, []);
 
   useEffect(() => {
     if (isLoaded && user) {
