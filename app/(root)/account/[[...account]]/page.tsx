@@ -3,7 +3,7 @@
 import  React, {useCallback, useRef} from "react";
 
 import { useEffect, useState } from "react";
-import { useUser, useClerk } from "@clerk/nextjs";
+import { useUser } from "@clerk/nextjs";
 import { getUser } from "@/actions/user.action";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
