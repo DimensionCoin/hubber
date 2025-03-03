@@ -6,11 +6,10 @@ import { Button } from "../ui/button";
 import LoadingPage from "./Loader";
 import PricingTiers from "./Pricingcards";
 import { getUser } from "@/actions/user.action";
-import { useState, useEffect, useCallback } from "react"; // ✅ Import useCallback
+import { useState, useEffect, useCallback } from "react";
 
 const Header = () => {
   const { user, isLoaded } = useUser();
-
   const [userData, setUserData] = useState({
     firstName: "",
     lastName: "",
@@ -18,7 +17,6 @@ const Header = () => {
     subscriptionTier: "free",
   });
 
-  // ✅ Memoize fetchUserData using useCallback
   const fetchUserData = useCallback(
     async (userId: string) => {
       try {
@@ -38,7 +36,6 @@ const Header = () => {
     [user]
   );
 
-  // ✅ Add fetchUserData to dependency array
   useEffect(() => {
     if (isLoaded && user) {
       fetchUserData(user.id);
@@ -54,35 +51,28 @@ const Header = () => {
   }
 
   return (
-    <header className="flex justify-between items-center w-full bg-zinc-900 text-zinc-100 py-6 px-4 md:px-8">
+    <header className="flex justify-between items-center w-full bg-zinc-950/80 backdrop-blur-lg py-4 px-4">
       <h2 className="font-bold text-xl bg-clip-text text-transparent bg-gradient-to-r from-teal-400 via-cyan-400 to-violet-500">
         HUBBER
       </h2>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-6">
         <SignedIn>
           {user && (
-            <div className="flex gap-4 items-center">
-              <div>
-                <PricingTiers currentTier={userData.subscriptionTier} />
-              </div>
-              <div>
-                <Button variant="ghost" size="icon" className="relative">
-                  <Bell className="h-5 w-5" />
-                  <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-primary" />
-                  <span className="sr-only">View notifications</span>
-                </Button>
-              </div>
-
-              <div className="flex items-center gap-2">
+            <div className="flex gap-6 items-center">
+              <Button variant="ghost" size="icon" className="relative">
+                <Bell className="h-5 w-5" />
+                <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-primary" />
+                <span className="sr-only">View notifications</span>
+              </Button>
+              <div className="flex items-center gap-3">
                 <UserButton />
-                <span>{user.firstName}</span>
+                <span className="text-zinc-300">{user.firstName}</span>
               </div>
             </div>
           )}
-
           <SignOutButton>
-            <div className="flex cursor-pointer hover:text-red-500">
+            <div className="flex cursor-pointer text-zinc-400 hover:text-red-500 transition">
               <CiLogout size={24} />
             </div>
           </SignOutButton>
@@ -91,5 +81,4 @@ const Header = () => {
     </header>
   );
 };
-
 export default Header;

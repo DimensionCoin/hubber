@@ -28,6 +28,7 @@ import { Separator } from "@/components/ui/separator";
 import { EmailAddressResource } from "@clerk/types";
 import PricingTiers from "@/components/shared/Pricingcards";
 import Image from "next/image";
+import {useRouter} from "next/navigation";
 
 export default function Account() {
   const { user, isLoaded } = useUser();
@@ -43,6 +44,7 @@ export default function Account() {
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const [emailObj, setEmailObj] = useState<EmailAddressResource | null>(null);
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const router = useRouter()
 
   const [userData, setUserData] = useState({
     firstName: "",
@@ -307,6 +309,17 @@ export default function Account() {
     }
   }
 
+  const editPaymentDetails = async () => {
+    const url = process.env.NEXT_PUBLIC_STRIPE_CUSTOMER_PORTAL!;
+    if (url) {
+      router.push(
+        url + "?prefilled_email=" + user?.emailAddresses[0]?.emailAddress
+      );
+    } else {
+      throw new Error("Failed to edit payment details");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-zinc-950/20 rounded-lg min-w-full">
       <div className="container  mx-auto px-2 py-6">
@@ -315,14 +328,7 @@ export default function Account() {
           <h1 className="text-2xl font-semibold text-white">
             Account Settings
           </h1>
-          <Button
-            variant="destructive"
-            size="sm"
-            className="ml-auto"
-            onClick={() => signOut()}
-          >
-            <LogOut className="mr-2 h-4 w-4" /> Sign Out
-          </Button>
+          
         </div>
 
         <div className="grid gap-6 lg:grid-cols-[300px_1fr]">
@@ -511,6 +517,12 @@ export default function Account() {
                     Save Changes
                   </Button>
                 </div>
+                <Button
+                  onClick={editPaymentDetails}
+                  className="bg-teal-500 hover:bg-teal-600 px-6"
+                >
+                  Edit Payment Details
+                </Button>
               </CardContent>
             </Card>
           </div>

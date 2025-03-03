@@ -6,6 +6,8 @@ import {
   User,
 } from "lucide-react";
 import Link from "next/link";
+import { FC } from "react";
+
 
 type NavLinkProps = {
   href: string;
@@ -13,9 +15,9 @@ type NavLinkProps = {
   label: string;
 };
 
-const Sidebar = () => {
+const Sidebar: FC = () => {
   return (
-    <aside className="hidden md:flex flex-col w-50  bg-zinc-900 text-zinc-100 p-5 border-r border-zinc-800 min-h-full">
+    <aside className="hidden md:flex flex-col w-50 bg-zinc-950/80 p-2 min-h-full">
       <nav className="space-y-4">
         <NavLink
           href="/dashboard"
@@ -29,13 +31,12 @@ const Sidebar = () => {
     </aside>
   );
 };
-
 export default Sidebar;
 
-const NavLink = ({ href, icon, label }: NavLinkProps) => (
+const NavLink: FC<NavLinkProps> = ({ href, icon, label }) => (
   <Link
     href={href}
-    className="flex items-center space-x-3 p-2 hover:bg-zinc-800 rounded-md"
+    className="flex items-center space-x-3 p-3 hover:bg-zinc-800 rounded-lg text-zinc-300 hover:text-white transition"
   >
     {icon}
     <span>{label}</span>
