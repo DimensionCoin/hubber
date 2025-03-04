@@ -6,6 +6,7 @@ import "../globals.css";
 import Sidebar from "@/components/shared/Sidebar";
 import BottomBar from "@/components/shared/BottomBar";
 import Header from "@/components/shared/Header";
+import { UserProvider } from "@/providers/UserProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,30 +28,32 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <ClerkProvider>
-      <html lang="en">
-        <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased bg-zinc-900 text-zinc-100`}
-        >
-          <Toaster position="top-right" reverseOrder={false} />
+      <UserProvider>
+        <html lang="en">
+          <body
+            className={`${geistSans.variable} ${geistMono.variable} antialiased bg-zinc-900 text-zinc-100`}
+          >
+            <Toaster position="top-right" reverseOrder={false} />
 
-          <div className="flex flex-col min-h-screen">
-            <Header />
-            <div className="flex flex-1 w-full">
-              {/* Sidebar for medium and large screens */}
-              <aside className="hidden md:block ">
-                <Sidebar />
-              </aside>
+            <div className="flex flex-col min-h-screen">
+              <Header />
+              <div className="flex flex-1 w-full">
+                {/* Sidebar for medium and large screens */}
+                <aside className="hidden md:block ">
+                  <Sidebar />
+                </aside>
 
-              {/* Main Content Area */}
-              <main className="flex-1 w-full overflow-auto">{children}</main>
+                {/* Main Content Area */}
+                <main className="flex-1 w-full overflow-auto">{children}</main>
+              </div>
+              {/* Bottom Bar for small screens */}
+              <div className="md:hidden w-full border-t border-zinc-800 bg-zinc-900">
+                <BottomBar />
+              </div>
             </div>
-            {/* Bottom Bar for small screens */}
-            <div className="md:hidden w-full border-t border-zinc-800 bg-zinc-900">
-              <BottomBar />
-            </div>
-          </div>
-        </body>
-      </html>
+          </body>
+        </html>
+      </UserProvider>
     </ClerkProvider>
   );
 }

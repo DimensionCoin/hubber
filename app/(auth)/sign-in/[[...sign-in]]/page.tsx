@@ -1,9 +1,8 @@
-"use client"
+"use client";
 import { Button } from "@/components/ui/button";
 import { SignIn } from "@clerk/nextjs";
 import { Building2 } from "lucide-react";
 import Link from "next/link";
-import router from "next/router";
 
 export default function Page() {
   return (
@@ -72,23 +71,20 @@ export default function Page() {
                 }}
               />
             </div>
-
-            {/* ✅ Corrected Sign-Up Section */}
-            <div className="text-white text-sm flex flex-col items-center mt-6">
-              <p className="text-zinc-400">Don’t have an account?</p>
-
-              {/* Correct Next.js Button Link */}
-              <Button
-                onClick={() => {
-                  console.log("Button Clicked! Navigating to /sign-up");
-                  router.push("/sign-up");
-                }}
-                className="mt-2 bg-teal-500 hover:bg-teal-400 text-white px-6 py-2 rounded-lg transition-all"
-              >
-                Sign Up
-              </Button>
-            </div>
           </div>
+        </div>
+        {/* ✅ Corrected Sign-Up Section */}
+        <div className="text-white text-sm flex flex-col items-center">
+          <p className="text-zinc-400">Don’t have an account?</p>
+
+          {/* Correct Next.js Button Link */}
+          <Link href="/sign-up" passHref>
+            <Button asChild>
+              <span className="mt-2 bg-teal-500 hover:bg-teal-400 text-white px-6 py-2 rounded-lg transition-all">
+                Sign Up
+              </span>
+            </Button>
+          </Link>
         </div>
       </main>
     </div>

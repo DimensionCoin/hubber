@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import { SignUp } from "@clerk/nextjs";
 import { Building2 } from "lucide-react";
 import Link from "next/link";
@@ -73,12 +74,18 @@ export default function Page() {
             </div>
           </div>
 
-          {/* Trust indicators */}
-          <div className="mt-16 text-center">
-            <div className="inline-flex items-center rounded-full border border-zinc-800 bg-zinc-900/50 px-4 py-1.5 text-sm text-zinc-400">
-              <span className="flex h-2 w-2 rounded-full bg-teal-400 mr-2" />
-              Trusted by 1000+ companies worldwide
-            </div>
+          {/* ✅ Corrected Sign-Up Section */}
+          <div className="text-white text-sm flex flex-col items-center">
+            <p className="text-zinc-400">Already have an account?</p>
+
+            {/* Correct Next.js Button Link */}
+            <Link href="/sign-in" passHref>
+              <Button asChild>
+                <span className="mt-2 bg-teal-500 hover:bg-teal-400 text-white px-6 py-2 rounded-lg transition-all">
+                  Sign in
+                </span>
+              </Button>
+            </Link>
           </div>
         </div>
       </main>

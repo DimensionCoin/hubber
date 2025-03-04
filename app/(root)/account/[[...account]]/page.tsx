@@ -321,10 +321,10 @@ export default function Account() {
 
   return (
     <div className="min-h-screen bg-zinc-950/20 rounded-lg min-w-full">
-      <div className="container  mx-auto px-2 py-6">
+      <div className="container  mx-auto px-2 py-4">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-2xl font-semibold text-white">
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-xl font-semibold text-white">
             Account Settings
           </h1>
           
