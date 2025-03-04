@@ -53,7 +53,7 @@ export default function Dashboard() {
   }, [isAuthenticated]);
 
   return (
-    <div className="container mx-auto p-2 space-y-8">
+    <div className="container mx-auto p-2 space-y-6 mb-14">
       {loading && (
         <div className="text-center text-white">Loading companies...</div>
       )}

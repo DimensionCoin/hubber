@@ -13,11 +13,17 @@ const CompanySchema = new Schema(
       unique: true,
       trim: true,
     },
+    companyUrl: {
+      type: String,
+      required: true,
+      unique: true,
+      trim: true,
+    },
     address: {
       street: String,
       city: String,
-      stateOrProvince: String, // Supports both states and provinces
-      postalCodeOrZip: String, // Supports postal codes, zip codes, and other region-specific codes
+      stateOrProvince: String,
+      postalCodeOrZip: String,
       country: {
         type: String,
         required: true,
@@ -63,16 +69,16 @@ const CompanySchema = new Schema(
     ],
     employees: {
       type: Array,
-      default: [], // ✅ Ensures new companies start with an empty employees array
+      default: [],
     },
     totalRevenue: {
       type: Number,
-      default: 0, // ✅ Ensures totalRevenue is explicitly set to zero
+      default: 0,
     },
     status: {
       type: String,
       enum: ["active", "inactive"],
-      default: "active", // ✅ New companies start as active by default
+      default: "active",
     },
     createdAt: { type: Date, default: Date.now },
   },

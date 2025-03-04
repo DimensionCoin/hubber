@@ -23,12 +23,12 @@ interface Company {
     postalCodeOrZip: string;
     country: string;
   };
-  employees: Employee[]; // ✅ Replace `any[]` with Employee[]
+  employees: Employee[];
   totalRevenue: number;
   status: string;
   createdAt: string;
+  companyUrl: string; // ✅ Include the company URL
 }
-
 
 const CompanyPage = () => {
   const { id } = useParams();
@@ -89,6 +89,23 @@ const CompanyPage = () => {
             ></span>
             <span className="text-sm text-zinc-400">{company.status}</span>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Company URL */}
+      <Card className="bg-zinc-800 border border-zinc-700">
+        <CardHeader>
+          <CardTitle className="text-lg">Company Portal</CardTitle>
+        </CardHeader>
+        <CardContent className="flex items-center gap-2 text-zinc-400">
+          <a
+            href={company.companyUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-teal-400 hover:underline break-all"
+          >
+            {company.companyUrl}
+          </a>
         </CardContent>
       </Card>
 

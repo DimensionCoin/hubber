@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCompanyById } from "@/actions/company.actions";
 import { auth } from "@clerk/nextjs/server";
 
+const BASE_URL = process.env.NEXT_PUBLIC_URL || "http://localhost:3000"; // Fallback if env is missing
+
 export async function GET(req: NextRequest) {
   try {
     const session = await auth();
@@ -22,6 +24,11 @@ export async function GET(req: NextRequest) {
     const company = await getCompanyById(id);
     if (!company) {
       return NextResponse.json({ error: "Company not found" }, { status: 404 });
+    }
+
+    // ✅ Ensure the company has a `companyUrl` (for older records)
+    if (!company.companyUrl) {
+      company.companyUrl = `${BASE_URL}/company/portal/${company._id}`;
     }
 
     return NextResponse.json(company, { status: 200 });

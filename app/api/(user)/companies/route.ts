@@ -2,8 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { createCompany, getUserCompanies } from "@/actions/company.actions";
 import { auth } from "@clerk/nextjs/server";
 
+const BASE_URL = process.env.NEXT_PUBLIC_URL || "http://localhost:3000"; // Fallback if env is missing
+
+// ✅ Get all companies for a user
 export async function GET() {
-  // ✅ Removed 'req' since it's unused
   try {
     const session = await auth();
     if (!session || !session.userId) {
@@ -23,6 +25,7 @@ export async function GET() {
   }
 }
 
+// ✅ Create a new company
 export async function POST(req: NextRequest) {
   try {
     const session = await auth();
@@ -30,7 +33,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const companyData = await req.json(); // ✅ Changed 'let' to 'const'
+    const companyData = await req.json();
     console.log("🚀 Received company data:", companyData);
 
     // ✅ Validate Required Fields
@@ -60,6 +63,10 @@ export async function POST(req: NextRequest) {
 
     // ✅ Create the company
     const newCompany = await createCompany(session.userId, companyData);
+
+    // ✅ Generate and update company URL
+    const companyUrl = `${BASE_URL}/company/portal/${newCompany._id}`;
+    newCompany.companyUrl = companyUrl;
 
     return NextResponse.json(newCompany, { status: 201 });
   } catch (error) {

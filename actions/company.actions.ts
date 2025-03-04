@@ -2,7 +2,8 @@ import { connect } from "@/db"; // Ensure correct import
 import User from "@/modals/user.modal";
 import Company from "@/modals/company.model";
 
-// ✅ Create a new company
+const BASE_URL = process.env.NEXT_PUBLIC_URL || "http://localhost:3000"; // Fallback if env is missing
+
 // ✅ Create a new company
 export async function createCompany(userId: string, companyData: any) {
   try {
@@ -17,8 +18,8 @@ export async function createCompany(userId: string, companyData: any) {
       throw new Error("Invalid address format");
     }
 
-    // ✅ Define company object with all fields explicitly set
-    const newCompanyData = {
+    // ✅ Create company in MongoDB
+    const newCompany = await Company.create({
       owner: user._id,
       name: companyData.name,
       phone: companyData.phone,
@@ -31,13 +32,15 @@ export async function createCompany(userId: string, companyData: any) {
         postalCodeOrZip: companyData.address.postalCodeOrZip,
         country: companyData.address.country,
       },
-      employees: companyData.employees || [], // ✅ Ensure employees array exists
-      totalRevenue: companyData.totalRevenue !== undefined ? companyData.totalRevenue : 0, // ✅ Ensure totalRevenue is initialized
-      status: companyData.status || "active", // ✅ Ensure status is set to "active" on creation
-    };
+      employees: companyData.employees || [],
+      totalRevenue:
+        companyData.totalRevenue !== undefined ? companyData.totalRevenue : 0,
+      status: companyData.status || "active",
+    });
 
-    // ✅ Create company in MongoDB
-    const newCompany = await Company.create(newCompanyData);
+    // ✅ Generate & Save `companyUrl`
+    newCompany.companyUrl = `${BASE_URL}/company/portal/${newCompany._id}`;
+    await newCompany.save();
 
     // ✅ Link company to user
     user.companies.push(newCompany._id);
@@ -50,6 +53,7 @@ export async function createCompany(userId: string, companyData: any) {
   }
 }
 
+// ✅ Fetch a company by ID
 export async function getCompanyById(companyId: string) {
   try {
     await connect();
@@ -66,8 +70,6 @@ export async function getCompanyById(companyId: string) {
     throw new Error("Failed to fetch company");
   }
 }
-
-
 
 // ✅ Get all companies for a user with correct typing
 export async function getUserCompanies(userId: string) {
@@ -92,9 +94,11 @@ export async function getUserCompanies(userId: string) {
         postalCodeOrZip: company.address.postalCodeOrZip || "",
         country: company.address.country || "",
       },
-      employees: company.employees || [], // ✅ Ensure employees array exists
-      totalRevenue: company.totalRevenue || 0, // ✅ Ensure totalRevenue exists
-      status: company.status || "active", // ✅ Ensure status exists
+      employees: company.employees || [],
+      totalRevenue: company.totalRevenue || 0,
+      status: company.status || "active",
+      companyUrl:
+        company.companyUrl || `${BASE_URL}/company/portal/${company._id}`, // ✅ Ensures older companies get a URL
       createdAt: company.createdAt,
       updatedAt: company.updatedAt,
     }));

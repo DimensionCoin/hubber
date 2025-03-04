@@ -170,7 +170,7 @@ export default function CreateCompanyForm() {
 
 
   return (
-    <div className="max-w-3xl mx-auto p-6 bg-zinc-900 rounded-lg shadow-lg">
+    <div className="max-w-3xl mx-auto p-6 bg-zinc-900 rounded-lg shadow-lg mb-14">
       <h1 className="text-2xl font-bold text-white mb-4">
         Create a New Company
       </h1>
