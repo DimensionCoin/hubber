@@ -2,7 +2,9 @@ import { connect } from "@/db"; // Ensure correct import
 import User from "@/modals/user.modal";
 import Company from "@/modals/company.model";
 
-const BASE_URL = process.env.NEXT_PUBLIC_URL || "http://localhost:3000"; // Fallback if env is missing
+const BASE_URL = process.env.NEXT_PUBLIC_URL || "http://localhost:3000"; // Default to local if missing
+
+console.log("🚀 Using BASE_URL:", BASE_URL); // ✅ Debug in production
 
 // ✅ Create a new company
 export async function createCompany(userId: string, companyData: any) {
@@ -41,6 +43,7 @@ export async function createCompany(userId: string, companyData: any) {
     // ✅ Generate & Save `companyUrl`
     newCompany.companyUrl = `${BASE_URL}/company/portal/${newCompany._id}`;
     await newCompany.save();
+    console.log("✅ Company URL saved:", newCompany.companyUrl); // ✅ Debug
 
     // ✅ Link company to user
     user.companies.push(newCompany._id);

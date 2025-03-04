@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { createCompany, getUserCompanies } from "@/actions/company.actions";
 import { auth } from "@clerk/nextjs/server";
 
-const BASE_URL = process.env.NEXT_PUBLIC_URL || "http://localhost:3000"; // Fallback if env is missing
+const BASE_URL =
+  process.env.NEXT_PUBLIC_URL || "https://hubber-ten.vercel.app"; // Fallback if env is missing
 
 // ✅ Get all companies for a user
 export async function GET() {
