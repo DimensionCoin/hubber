@@ -1,5 +1,7 @@
 import { Schema, model, models } from "mongoose";
 
+const BASE_URL = process.env.NEXT_PUBLIC_URL || "http://localhost:3000";
+
 const CompanySchema = new Schema(
   {
     owner: {
@@ -8,12 +10,6 @@ const CompanySchema = new Schema(
       required: true,
     },
     name: {
-      type: String,
-      required: true,
-      unique: true,
-      trim: true,
-    },
-    companyUrl: {
       type: String,
       required: true,
       unique: true,
@@ -79,6 +75,10 @@ const CompanySchema = new Schema(
       type: String,
       enum: ["active", "inactive"],
       default: "active",
+    },
+    companyUrl: {
+      type: String,
+      required: false, // ✅ Allow `companyUrl` to be set later
     },
     createdAt: { type: Date, default: Date.now },
   },

@@ -20,8 +20,8 @@ export async function createCompany(userId: string, companyData: any) {
       throw new Error("Invalid address format");
     }
 
-    // ✅ Create company in MongoDB
-    const newCompany = await Company.create({
+    // ✅ Create company in MongoDB **without `companyUrl` yet**
+    let newCompany = new Company({
       owner: user._id,
       name: companyData.name,
       phone: companyData.phone,
@@ -35,15 +35,18 @@ export async function createCompany(userId: string, companyData: any) {
         country: companyData.address.country,
       },
       employees: companyData.employees || [],
-      totalRevenue:
-        companyData.totalRevenue !== undefined ? companyData.totalRevenue : 0,
+      totalRevenue: companyData.totalRevenue || 0,
       status: companyData.status || "active",
     });
 
-    // ✅ Generate & Save `companyUrl`
+    // ✅ First, Save to get `_id`
+    newCompany = await newCompany.save();
+
+    // ✅ Now that `_id` exists, generate `companyUrl` and update
     newCompany.companyUrl = `${BASE_URL}/company/portal/${newCompany._id}`;
     await newCompany.save();
-    console.log("✅ Company URL saved:", newCompany.companyUrl); // ✅ Debug
+
+    console.log("✅ Company Created:", newCompany);
 
     // ✅ Link company to user
     user.companies.push(newCompany._id);
