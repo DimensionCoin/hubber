@@ -86,13 +86,13 @@ export async function getUserCompanies(userId: string) {
     const user = await User.findOne({ clerkId: userId }).populate("companies");
     if (!user) throw new Error("User not found");
 
-    // ✅ Return user's companies with properly typed fields
+    // ✅ Return user's companies with full details
     return user.companies.map((company: any) => ({
       _id: company._id.toString(),
       name: company.name,
       phone: company.phone,
       email: company.email,
-      businessType: company.businessType,
+      businessType: company.businessType || "N/A", // ✅ Prevent undefined values
       address: {
         street: company.address.street || "",
         city: company.address.city || "",
@@ -102,9 +102,9 @@ export async function getUserCompanies(userId: string) {
       },
       employees: company.employees || [],
       totalRevenue: company.totalRevenue || 0,
-      status: company.status || "active",
+      status: company.status || "inactive",
       companyUrl:
-        company.companyUrl || `${BASE_URL}/company/portal/${company._id}`, // ✅ Ensures older companies get a URL
+        company.companyUrl || `${BASE_URL}/company/portal/${company._id}`, // ✅ Ensure company URL is always set
       createdAt: company.createdAt,
       updatedAt: company.updatedAt,
     }));
@@ -113,3 +113,4 @@ export async function getUserCompanies(userId: string) {
     throw new Error("Failed to fetch companies");
   }
 }
+

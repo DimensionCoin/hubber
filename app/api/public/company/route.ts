@@ -22,10 +22,22 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Company not found" }, { status: 404 });
     }
 
-    // ✅ Return only public fields
+    // ✅ Return required fields (Now includes `address`)
     const publicCompanyData = {
       name: company.name,
-      employees: company.employees,
+      businessType: company.businessType || "N/A",
+      employees: company.employees || [],
+      totalRevenue: company.totalRevenue || 0,
+      status: company.status || "inactive",
+      companyUrl: company.companyUrl || "",
+      createdAt: company.createdAt || new Date().toISOString(),
+      address: {
+        street: company.address?.street || "N/A",
+        city: company.address?.city || "N/A",
+        stateOrProvince: company.address?.stateOrProvince || "N/A",
+        postalCodeOrZip: company.address?.postalCodeOrZip || "N/A",
+        country: company.address?.country || "N/A",
+      },
     };
 
     return NextResponse.json(publicCompanyData, { status: 200 });
