@@ -15,13 +15,13 @@ export async function createCompany(userId: string, companyData: any) {
     const user = await User.findOne({ clerkId: userId });
     if (!user) throw new Error("User not found");
 
-    // ✅ Ensure the address is correctly formatted
+    // ✅ Ensure address is correctly formatted
     if (!companyData.address || typeof companyData.address !== "object") {
       throw new Error("Invalid address format");
     }
 
-    // ✅ Create a new Mongoose document (Do NOT use `Company.create()`)
-    const newCompany = new Company({
+    // ✅ Create company **directly with .create()**
+    const newCompany = await Company.create({
       owner: user._id,
       name: companyData.name,
       phone: companyData.phone,
@@ -39,14 +39,11 @@ export async function createCompany(userId: string, companyData: any) {
       status: companyData.status || "active",
     });
 
-    // ✅ Save the document properly
-    await newCompany.save();
+    // ✅ Generate company URL
+    const companyUrl = `${process.env.NEXT_PUBLIC_URL}/company/portal/${newCompany._id}`;
 
-    // ✅ Generate company URL AFTER saving (Now `_id` exists)
-    newCompany.companyUrl = `${process.env.NEXT_PUBLIC_URL}/company/portal/${newCompany._id}`;
-
-    // ✅ Save the new `companyUrl`
-    await newCompany.save();
+    // ✅ Use `.findByIdAndUpdate()` instead of `.save()`
+    await Company.findByIdAndUpdate(newCompany._id, { companyUrl });
 
     console.log("✅ Company Created:", newCompany);
 
@@ -60,7 +57,6 @@ export async function createCompany(userId: string, companyData: any) {
     throw new Error("Failed to create company");
   }
 }
-
 
 // ✅ Fetch a company by ID
 export async function getCompanyById(companyId: string) {

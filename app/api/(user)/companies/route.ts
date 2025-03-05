@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { createCompany, getUserCompanies } from "@/actions/company.actions";
 import { auth } from "@clerk/nextjs/server";
 
-const BASE_URL = process.env.NEXT_PUBLIC_URL || "https://hubber-ten.vercel.app"; // ✅ Ensure BASE_URL is correct
 
 // ✅ Get all companies for a user
 export async function GET() {
@@ -61,12 +60,8 @@ export async function POST(req: NextRequest) {
       companyData.totalRevenue !== undefined ? companyData.totalRevenue : 0;
     companyData.status = companyData.status || "active";
 
-    // ✅ Create the company
+    // ✅ Create the company (companyUrl is already set in createCompany)
     const newCompany = await createCompany(session.userId, companyData);
-
-    // ✅ Generate and update company URL
-    newCompany.companyUrl = `${BASE_URL}/company/portal/${newCompany._id}`;
-    await newCompany.save(); // ✅ Save company URL to DB
 
     console.log("✅ Company Created with URL:", newCompany.companyUrl);
 
