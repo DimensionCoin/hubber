@@ -26,6 +26,8 @@ export async function GET(req: NextRequest) {
     const publicCompanyData = {
       name: company.name,
       businessType: company.businessType || "N/A",
+      email: company.email,
+      phone: company.phone,
       employees: company.employees || [],
       clients: company.clients || [], 
       totalRevenue: company.totalRevenue || 0,

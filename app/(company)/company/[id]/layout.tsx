@@ -26,11 +26,12 @@ export default function DashboardLayout({
             </div>
 
             {/* Main Content */}
-            <div className="flex-1 flex flex-col overflow-auto">
-              <Header
-                title={companyId ? "Company Dashboard" : "Dashboard"}
-                companyId={companyId}
-              />
+            <div className="flex-1 flex flex-col overflow-auto ">
+              <div className="md:hidden">
+                <Header
+                  companyId={companyId}
+                />
+              </div>
               <main className="flex-1">{children}</main>
             </div>
           </div>

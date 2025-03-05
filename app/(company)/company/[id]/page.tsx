@@ -6,28 +6,25 @@ import Link from "next/link";
 import {
   Users,
   DollarSign,
-  MapPin,
+ 
   Calendar,
-  Building,
+
   Plus,
   BarChart3,
   Mail,
   Phone,
-  ExternalLink,
+
   User,
   TrendingUp,
   AlertTriangle,
   CheckCircle,
-  ArrowUpRight,
-  ArrowDownRight,
-  Globe2,
-  Share2,
+ 
 } from "lucide-react";
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
+ 
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -36,6 +33,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import CompanyProfileHeader from "@/components/shared/CompanyProfileHeader";
+import CompanyKeyMetrics from "@/components/shared/CompanyKeyMetrics";
 
 interface Employee {
   name: string;
@@ -82,17 +81,6 @@ interface Company {
   companyUrl: string;
 }
 
-// Sample data for metrics and projects
-const sampleMetrics = {
-  monthlyRevenue: 42500,
-  previousMonthRevenue: 38000,
-  activeProjects: 8,
-  previousMonthProjects: 6,
-  clientSatisfaction: 92,
-  previousMonthSatisfaction: 89,
-  employeeUtilization: 87,
-  previousMonthUtilization: 85,
-};
 
 const sampleProjects: Project[] = [
   {
@@ -243,312 +231,15 @@ const CompanyPage = () => {
     }).format(amount);
   };
 
-  const getMetricChange = (current: number, previous: number) => {
-    const percentChange = ((current - previous) / previous) * 100;
-    return {
-      value: Math.abs(percentChange).toFixed(1),
-      isPositive: percentChange >= 0,
-    };
-  };
-
   return (
     <>
       {/* Company Header */}
-      <div className="bg-zinc-900 border-b border-zinc-800 px-4 md:px-6 py-6">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            {/* Company Name and Status */}
-            <div className="flex items-center gap-3">
-              <h1
-                className="
-        text-3xl 
-        font-bold 
-        bg-clip-text 
-        text-transparent 
-        bg-gradient-to-r 
-        from-teal-400 
-        via-cyan-400 
-        to-violet-500"
-              >
-                {company.name}
-              </h1>
-              <Badge
-                className={`
-        ${
-          company.status === "active"
-            ? "bg-emerald-500 hover:bg-emerald-600"
-            : "bg-zinc-500 hover:bg-zinc-600"
-        } 
-        text-white`}
-              >
-                {company.status.toUpperCase()}
-              </Badge>
-            </div>
-
-            {/* Business Type */}
-            <p className="text-sm text-zinc-300 mt-1 flex items-center gap-2">
-              <Building className="w-4 h-4 text-teal-400" />
-              {company.businessType.toUpperCase()}
-            </p>
-
-            {/* Contact and Location Details */}
-            <div className="flex flex-col sm:flex-row sm:items-center gap-x-6 gap-y-1 mt-2">
-              {/* Location */}
-              <p className="text-sm text-zinc-300 flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-teal-400" />
-                {company.address.city}, {company.address.country}
-              </p>
-
-              {/* Phone */}
-              <p className="text-sm text-zinc-300 flex items-center gap-2">
-                <Phone className="w-4 h-4 text-teal-400" />
-                {company.phone}
-              </p>
-
-              {/* Email */}
-              <p className="text-sm text-zinc-300 flex items-center gap-2">
-                <Mail className="w-4 h-4 text-teal-400" />
-                {company.email}
-              </p>
-
-              {/* Company URL with Share Button */}
-              <p className="text-sm text-zinc-300 flex items-center gap-2">
-                <Globe2 className="w-4 h-4 text-teal-400" />
-                {company.companyUrl}
-                <button
-                  onClick={() => {
-                    if (navigator.share) {
-                      // Web Share API for modern browsers
-                      navigator
-                        .share({
-                          title: `${company.name} Company Page`,
-                          url: company.companyUrl,
-                        })
-                        .catch((err) => console.error("Share failed:", err));
-                    } else {
-                      // Fallback: Copy to clipboard
-                      navigator.clipboard
-                        .writeText(company.companyUrl)
-                        .then(() => {
-                          alert("URL copied to clipboard!");
-                        })
-                        .catch((err) => console.error("Copy failed:", err));
-                    }
-                  }}
-                  className="text-teal-400 hover:text-teal-300 focus:outline-none"
-                  aria-label="Share company URL"
-                >
-                  <Share2 className="w-4 h-4" />
-                </button>
-              </p>
-            </div>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button
-              onClick={() => router.push(`/company/${id}/edit`)}
-              variant="outline"
-              className="border-zinc-700 text-black hover:text-white hover:bg-zinc-800"
-            >
-              Edit Company
-            </Button>
-            <Button
-              onClick={() => window.open(company.companyUrl, "_blank")}
-              className="bg-teal-500 hover:bg-teal-600 text-white"
-            >
-              <ExternalLink className="w-4 h-4 mr-2" />
-              Visit Website
-            </Button>
-          </div>
-        </div>
-      </div>
+     <CompanyProfileHeader/>
 
       {/* Dashboard Content */}
       <div className="p-4 md:p-6 space-y-6">
         {/* Key Metrics */}
-        <section>
-          <h2 className="text-xl font-semibold text-white mb-4">Key Metrics</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* Revenue Metric */}
-            <Card className="bg-zinc-900 border-zinc-800">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-zinc-300">
-                  Monthly Revenue
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-baseline justify-between">
-                  <div className="text-2xl font-bold text-white">
-                    {formatCurrency(sampleMetrics.monthlyRevenue)}
-                  </div>
-                  <div
-                    className={`flex items-center text-xs font-medium ${
-                      getMetricChange(
-                        sampleMetrics.monthlyRevenue,
-                        sampleMetrics.previousMonthRevenue
-                      ).isPositive
-                        ? "text-emerald-500"
-                        : "text-red-500"
-                    }`}
-                  >
-                    {getMetricChange(
-                      sampleMetrics.monthlyRevenue,
-                      sampleMetrics.previousMonthRevenue
-                    ).isPositive ? (
-                      <ArrowUpRight className="h-3 w-3 mr-1" />
-                    ) : (
-                      <ArrowDownRight className="h-3 w-3 mr-1" />
-                    )}
-                    {
-                      getMetricChange(
-                        sampleMetrics.monthlyRevenue,
-                        sampleMetrics.previousMonthRevenue
-                      ).value
-                    }
-                    %
-                  </div>
-                </div>
-              </CardContent>
-              <CardFooter className="pt-0">
-                <p className="text-xs text-zinc-400">Compared to last month</p>
-              </CardFooter>
-            </Card>
-
-            {/* Active Projects Metric */}
-            <Card className="bg-zinc-900 border-zinc-800">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-zinc-300">
-                  Active Projects
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-baseline justify-between">
-                  <div className="text-2xl font-bold text-white">
-                    {sampleMetrics.activeProjects}
-                  </div>
-                  <div
-                    className={`flex items-center text-xs font-medium ${
-                      getMetricChange(
-                        sampleMetrics.activeProjects,
-                        sampleMetrics.previousMonthProjects
-                      ).isPositive
-                        ? "text-emerald-500"
-                        : "text-red-500"
-                    }`}
-                  >
-                    {getMetricChange(
-                      sampleMetrics.activeProjects,
-                      sampleMetrics.previousMonthProjects
-                    ).isPositive ? (
-                      <ArrowUpRight className="h-3 w-3 mr-1" />
-                    ) : (
-                      <ArrowDownRight className="h-3 w-3 mr-1" />
-                    )}
-                    {
-                      getMetricChange(
-                        sampleMetrics.activeProjects,
-                        sampleMetrics.previousMonthProjects
-                      ).value
-                    }
-                    %
-                  </div>
-                </div>
-              </CardContent>
-              <CardFooter className="pt-0">
-                <p className="text-xs text-zinc-400">Compared to last month</p>
-              </CardFooter>
-            </Card>
-
-            {/* Client Satisfaction Metric */}
-            <Card className="bg-zinc-900 border-zinc-800">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-zinc-300">
-                  Client Satisfaction
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-baseline justify-between">
-                  <div className="text-2xl font-bold text-white">
-                    {sampleMetrics.clientSatisfaction}%
-                  </div>
-                  <div
-                    className={`flex items-center text-xs font-medium ${
-                      getMetricChange(
-                        sampleMetrics.clientSatisfaction,
-                        sampleMetrics.previousMonthSatisfaction
-                      ).isPositive
-                        ? "text-emerald-500"
-                        : "text-red-500"
-                    }`}
-                  >
-                    {getMetricChange(
-                      sampleMetrics.clientSatisfaction,
-                      sampleMetrics.previousMonthSatisfaction
-                    ).isPositive ? (
-                      <ArrowUpRight className="h-3 w-3 mr-1" />
-                    ) : (
-                      <ArrowDownRight className="h-3 w-3 mr-1" />
-                    )}
-                    {
-                      getMetricChange(
-                        sampleMetrics.clientSatisfaction,
-                        sampleMetrics.previousMonthSatisfaction
-                      ).value
-                    }
-                    %
-                  </div>
-                </div>
-              </CardContent>
-              <CardFooter className="pt-0">
-                <p className="text-xs text-zinc-400">Compared to last month</p>
-              </CardFooter>
-            </Card>
-
-            {/* Employee Utilization Metric */}
-            <Card className="bg-zinc-900 border-zinc-800">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-zinc-300">
-                  Employee Utilization
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-baseline justify-between">
-                  <div className="text-2xl font-bold text-white">
-                    {sampleMetrics.employeeUtilization}%
-                  </div>
-                  <div
-                    className={`flex items-center text-xs font-medium ${
-                      getMetricChange(
-                        sampleMetrics.employeeUtilization,
-                        sampleMetrics.previousMonthUtilization
-                      ).isPositive
-                        ? "text-emerald-500"
-                        : "text-red-500"
-                    }`}
-                  >
-                    {getMetricChange(
-                      sampleMetrics.employeeUtilization,
-                      sampleMetrics.previousMonthUtilization
-                    ).isPositive ? (
-                      <ArrowUpRight className="h-3 w-3 mr-1" />
-                    ) : (
-                      <ArrowDownRight className="h-3 w-3 mr-1" />
-                    )}
-                    {
-                      getMetricChange(
-                        sampleMetrics.employeeUtilization,
-                        sampleMetrics.previousMonthUtilization
-                      ).value
-                    }
-                    %
-                  </div>
-                </div>
-              </CardContent>
-              <CardFooter className="pt-0">
-                <p className="text-xs text-zinc-400">Compared to last month</p>
-              </CardFooter>
-            </Card>
-          </div>
-        </section>
+        <CompanyKeyMetrics/>
 
         {/* Main Dashboard Tabs */}
         <Tabs defaultValue="overview" className="w-full">

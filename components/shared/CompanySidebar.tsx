@@ -29,7 +29,7 @@ export function Sidebar({ companyId }: SidebarProps) {
     <aside className="w-64 flex-col bg-zinc-900 border-r border-zinc-800 h-full">
       <div className="flex flex-col h-full">
        
-        <div className="flex-1 py-4 mt-14">
+        <div className="flex-1 py-4 mt-5">
           <nav className="px-4 space-y-1">
             <Link
               href="/dashboard"
