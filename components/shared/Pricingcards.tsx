@@ -102,16 +102,16 @@ const PricingTiers: React.FC<PricingTiersProps> = ({ currentTier }) => {
       {/* Modal */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-6"
+          className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto"
           onClick={() => setIsOpen(false)}
         >
           <div
-            className="relative bg-zinc-950 text-zinc-100 w-full max-w-4xl rounded-lg shadow-xl"
+            className="relative bg-zinc-950 text-zinc-100 w-full max-w-4xl rounded-lg shadow-xl max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Close Button */}
             <button
-              className="absolute top-4 right-4 text-zinc-400 hover:text-white transition"
+              className="absolute top-4 right-4 text-zinc-400 hover:text-white transition z-10"
               onClick={() => setIsOpen(false)}
             >
               <XCircle className="h-6 w-6" />
@@ -121,42 +121,44 @@ const PricingTiers: React.FC<PricingTiersProps> = ({ currentTier }) => {
             <div className="p-6 space-y-6">
               {/* Header */}
               <div className="text-center space-y-3">
-                <h2 className="text-3xl sm:text-4xl font-bold tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-teal-400 via-cyan-400 to-violet-500">
+                <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-teal-400 via-cyan-400 to-violet-500">
                   Choose Your Plan
                 </h2>
-                <p className="text-zinc-400 text-base sm:text-lg">
+                <p className="text-zinc-400 text-sm sm:text-base md:text-lg">
                   Unlock the full potential of your business with the right
                   plan.
                 </p>
               </div>
 
               {/* Pricing Cards */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {tiers.map((tier) => (
                   <Card
                     key={tier.id}
-                    className="flex flex-col bg-zinc-900/50 border border-zinc-800/50 hover:shadow-lg hover:border-primary/50 text-zinc-400 p-6 rounded-lg"
+                    className="flex flex-col bg-zinc-900/50 border border-zinc-800/50 hover:shadow-lg hover:border-primary/50 text-zinc-400 p-4 sm:p-6 rounded-lg"
                   >
                     <CardHeader>
-                      <CardTitle className="text-xl capitalize text-white">
+                      <CardTitle className="text-lg sm:text-xl capitalize text-white">
                         {tier.name}
                       </CardTitle>
-                      <CardDescription>{tier.description}</CardDescription>
+                      <CardDescription className="text-sm">
+                        {tier.description}
+                      </CardDescription>
                       <div className="flex items-baseline mt-2">
-                        <span className="text-3xl font-bold text-white">
+                        <span className="text-2xl sm:text-3xl font-bold text-white">
                           {tier.price}
                         </span>
-                        <span className="ml-1 text-sm text-zinc-400">
+                        <span className="ml-1 text-xs sm:text-sm text-zinc-400">
                           /Yearly
                         </span>
                       </div>
                     </CardHeader>
 
                     <CardContent className="flex-1">
-                      <ul className="space-y-3 text-sm">
+                      <ul className="space-y-2 text-xs sm:text-sm">
                         {tier.features.map((feature, i) => (
                           <li key={i} className="flex items-center gap-2">
-                            <Check className="h-5 w-5 text-teal-400 shrink-0" />
+                            <Check className="h-4 w-4 sm:h-5 sm:w-5 text-teal-400 shrink-0" />
                             <span>{feature}</span>
                           </li>
                         ))}
@@ -172,7 +174,7 @@ const PricingTiers: React.FC<PricingTiersProps> = ({ currentTier }) => {
                               tier.name === "basic" ? "basic" : "premium"
                             )
                           }
-                          className="w-full bg-teal-500 hover:bg-teal-600 text-white"
+                          className="w-full bg-teal-500 hover:bg-teal-600 text-white text-sm sm:text-base py-2"
                         >
                           Subscribe
                         </Button>
