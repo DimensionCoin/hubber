@@ -53,13 +53,43 @@ const CompanySchema = new Schema(
     },
     clients: [
       {
-        name: String,
-        email: String,
-        phone: String,
-        company: String,
-        imageUrl: {
+        firstName: {
           type: String,
-          default: "",
+          required: true,
+        },
+        lastName: {
+          type: String,
+          required: true,
+        },
+        email: {
+          type: String,
+          required: true,
+        },
+        phone: {
+          type: String,
+          required: true,
+        },
+        address: {
+          street: {
+            type: String,
+            required: true,
+          },
+          city: {
+            type: String,
+            required: true,
+          },
+          postalCodeOrZip: {
+            type: String,
+            required: true,
+          },
+        },
+        company: {
+          type: String,
+          required: false, // Optional company name
+        },
+        images: {
+          type: [String], // Array of image URLs
+          default: [],
         },
       },
     ],
@@ -78,7 +108,7 @@ const CompanySchema = new Schema(
     },
     companyUrl: {
       type: String,
-      required: false, // ✅ Allow `companyUrl` to be set later
+      required: false,
     },
     createdAt: { type: Date, default: Date.now },
   },

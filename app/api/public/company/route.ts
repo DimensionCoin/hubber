@@ -27,6 +27,7 @@ export async function GET(req: NextRequest) {
       name: company.name,
       businessType: company.businessType || "N/A",
       employees: company.employees || [],
+      clients: company.clients || [], 
       totalRevenue: company.totalRevenue || 0,
       status: company.status || "inactive",
       companyUrl: company.companyUrl || "",

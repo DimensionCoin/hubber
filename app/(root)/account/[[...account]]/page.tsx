@@ -520,7 +520,7 @@ export default function Account() {
                   onClick={editPaymentDetails}
                   className="bg-teal-500 hover:bg-teal-600 px-6"
                 >
-                  Edit Payment Details
+                  Edit Subscription Details
                 </Button>
               </CardContent>
             </Card>

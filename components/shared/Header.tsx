@@ -3,7 +3,6 @@ import { SignedIn, SignOutButton, UserButton, useUser } from "@clerk/nextjs";
 import { CiLogout } from "react-icons/ci";
 import { Bell } from "lucide-react";
 import { Button } from "../ui/button";
-import LoadingPage from "./Loader";
 import {  useEffect, useCallback } from "react";
 import { getUser } from "@/actions/user.action";
 
@@ -26,8 +25,11 @@ const Header = () => {
 
   if (!isLoaded) {
     return (
-      <div className="flex items-center justify-center w-full min-h-screen bg-black text-zinc-100">
-        <LoadingPage />
+      <div className="flex items-center justify-center min-h-screen bg-zinc-950">
+        <div className="flex flex-col items-center gap-2">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-zinc-700 border-t-teal-500"></div>
+          <p className="text-zinc-300">Loading dashboard...</p>
+        </div>
       </div>
     );
   }

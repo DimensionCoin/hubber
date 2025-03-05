@@ -1,26 +1,23 @@
-import { connect } from "@/db"; // Ensure correct import
+import { connect } from "@/db";
 import User from "@/modals/user.modal";
 import Company from "@/modals/company.model";
 
-const BASE_URL = process.env.NEXT_PUBLIC_URL || "http://localhost:3000"; // Default to local if missing
+const BASE_URL = process.env.NEXT_PUBLIC_URL || "http://localhost:3000";
 
-console.log("🚀 Using BASE_URL:", BASE_URL); // ✅ Debug in production
+console.log("🚀 Using BASE_URL:", BASE_URL);
 
 // ✅ Create a new company
 export async function createCompany(userId: string, companyData: any) {
   try {
     await connect();
 
-    // ✅ Find user by Clerk's `userId`
     const user = await User.findOne({ clerkId: userId });
     if (!user) throw new Error("User not found");
 
-    // ✅ Ensure address is correctly formatted
     if (!companyData.address || typeof companyData.address !== "object") {
       throw new Error("Invalid address format");
     }
 
-    // ✅ Create company **directly with .create()**
     const newCompany = await Company.create({
       owner: user._id,
       name: companyData.name,
@@ -35,19 +32,16 @@ export async function createCompany(userId: string, companyData: any) {
         country: companyData.address.country,
       },
       employees: companyData.employees || [],
+      clients: companyData.clients || [],
       totalRevenue: companyData.totalRevenue || 0,
       status: companyData.status || "active",
     });
 
-    // ✅ Generate company URL
     const companyUrl = `${process.env.NEXT_PUBLIC_URL}/company/portal/${newCompany._id}`;
-
-    // ✅ Use `.findByIdAndUpdate()` instead of `.save()`
     await Company.findByIdAndUpdate(newCompany._id, { companyUrl });
 
     console.log("✅ Company Created:", newCompany);
 
-    // ✅ Link company to user
     user.companies.push(newCompany._id);
     await user.save();
 
@@ -64,10 +58,7 @@ export async function getCompanyById(companyId: string) {
     await connect();
 
     const company = await Company.findById(companyId);
-
-    if (!company) {
-      throw new Error("Company not found");
-    }
+    if (!company) throw new Error("Company not found");
 
     return JSON.parse(JSON.stringify(company));
   } catch (error) {
@@ -76,22 +67,20 @@ export async function getCompanyById(companyId: string) {
   }
 }
 
-// ✅ Get all companies for a user with correct typing
+// ✅ Get all companies for a user
 export async function getUserCompanies(userId: string) {
   try {
     await connect();
 
-    // ✅ Find user by Clerk's `userId`
     const user = await User.findOne({ clerkId: userId }).populate("companies");
     if (!user) throw new Error("User not found");
 
-    // ✅ Return user's companies with full details
     return user.companies.map((company: any) => ({
       _id: company._id.toString(),
       name: company.name,
       phone: company.phone,
       email: company.email,
-      businessType: company.businessType || "N/A", // ✅ Prevent undefined values
+      businessType: company.businessType || "N/A",
       address: {
         street: company.address.street || "",
         city: company.address.city || "",
@@ -100,10 +89,11 @@ export async function getUserCompanies(userId: string) {
         country: company.address.country || "",
       },
       employees: company.employees || [],
+      clients: company.clients || [],
       totalRevenue: company.totalRevenue || 0,
       status: company.status || "inactive",
       companyUrl:
-        company.companyUrl || `${BASE_URL}/company/portal/${company._id}`, // ✅ Ensure company URL is always set
+        company.companyUrl || `${BASE_URL}/company/portal/${company._id}`,
       createdAt: company.createdAt,
       updatedAt: company.updatedAt,
     }));
@@ -113,3 +103,56 @@ export async function getUserCompanies(userId: string) {
   }
 }
 
+// ✅ Add a client to a company
+export async function addClientToCompany(
+  companyId: string,
+  clientData: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+    address: {
+      street: string;
+      city: string;
+      postalCodeOrZip: string;
+    };
+    company?: string;
+    images?: string[];
+  }
+) {
+  try {
+    await connect();
+
+    // ✅ Validate client data
+    if (
+      !clientData.firstName ||
+      !clientData.lastName ||
+      !clientData.email ||
+      !clientData.phone ||
+      !clientData.address ||
+      !clientData.address.street ||
+      !clientData.address.city ||
+      !clientData.address.postalCodeOrZip
+    ) {
+      throw new Error("Missing required client fields");
+    }
+
+    // ✅ Find company by ID and push new client to the clients array
+    const updatedCompany = await Company.findByIdAndUpdate(
+      companyId,
+      { $push: { clients: clientData } },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedCompany) {
+      throw new Error("Company not found");
+    }
+
+    console.log("✅ Client added to company:", updatedCompany);
+
+    return JSON.parse(JSON.stringify(updatedCompany));
+  } catch (error) {
+    console.error("❌ Error adding client to company:", error);
+    throw new Error("Failed to add client");
+  }
+}
