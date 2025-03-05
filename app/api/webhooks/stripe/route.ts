@@ -5,41 +5,25 @@ import User from "@/modals/user.modal";
 
 // ✅ Initialize Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-01-27.acacia",
+  apiVersion: "2024-04-10", // ✅ Use latest Stripe API version
 });
 
 // ✅ Stripe Webhook Secret
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
-// ✅ Disable Next.js automatic request body parsing
 export const config = {
   api: {
-    bodyParser: false,
+    bodyParser: false, // ✅ Prevent Next.js from auto-parsing the request body
   },
 };
-
-// ✅ Function to Read Raw Request Body
-async function readRawBody(req: NextRequest): Promise<Buffer> {
-  const chunks: Uint8Array[] = [];
-  const reader = req.body?.getReader();
-  if (!reader) throw new Error("Request body is missing");
-
-  let done = false;
-  while (!done) {
-    const { value, done: streamDone } = await reader.read();
-    if (value) chunks.push(value);
-    done = streamDone;
-  }
-  return Buffer.concat(chunks);
-}
 
 // ✅ Handle Stripe Webhook Events
 export async function POST(req: NextRequest) {
   try {
     await connect();
 
-    // ✅ Extract raw body
-    const rawBody = await readRawBody(req);
+    // ✅ Get raw body as a Buffer
+    const rawBody = await req.arrayBuffer(); // ✅ Fix for Vercel
     const sig = req.headers.get("stripe-signature");
 
     if (!sig) {
@@ -52,11 +36,15 @@ export async function POST(req: NextRequest) {
 
     let event: Stripe.Event;
     try {
-      event = stripe.webhooks.constructEvent(rawBody, sig, endpointSecret);
-    } catch (err: any) {
-      console.error("❌ Stripe Webhook Signature Error:", err.message);
+      event = stripe.webhooks.constructEvent(
+        rawBody, // ✅ Now using arrayBuffer
+        sig,
+        endpointSecret
+      );
+    } catch (err) {
+      console.error("❌ Stripe Webhook Signature Error:", err);
       return NextResponse.json(
-        { error: `Webhook verification failed: ${err.message}` },
+        { error: `Webhook verification failed: ${err}` },
         { status: 400 }
       );
     }
@@ -71,9 +59,7 @@ export async function POST(req: NextRequest) {
 
         const fullSession = await stripe.checkout.sessions.retrieve(
           session.id,
-          {
-            expand: ["line_items.data.price", "customer"],
-          }
+          { expand: ["line_items.data.price", "customer"] }
         );
 
         let customerId: string | null = null;
@@ -161,10 +147,10 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ message: "Webhook received" }, { status: 200 });
-  } catch (error: any) {
-    console.error("❌ Webhook Processing Error:", error.message);
+  } catch (error) {
+    console.error("❌ Webhook Processing Error:", error);
     return NextResponse.json(
-      { error: `Internal Server Error: ${error.message}` },
+      { error: `Internal Server Error: ${error}` },
       { status: 500 }
     );
   }
