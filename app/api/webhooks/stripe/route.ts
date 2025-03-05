@@ -11,10 +11,13 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 // ✅ Stripe Webhook Secret
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
+// ✅ Disable Next.js automatic request body parsing
 export const config = {
   api: {
-    bodyParser: false, // ✅ Prevent Next.js from auto-parsing the request body
+    bodyParser: false, // ✅ Required for raw body verification
   },
+  runtime: "edge", // ✅ Ensures correct handling on Vercel
+  streaming: false, // ✅ Prevents body modification
 };
 
 // ✅ Handle Stripe Webhook Events
@@ -23,7 +26,7 @@ export async function POST(req: NextRequest) {
     await connect();
 
     // ✅ Get raw body as a Buffer
-    const rawBody = Buffer.from(await req.arrayBuffer()); // 🔹 Fix: Convert `ArrayBuffer` to `Buffer`
+    const rawBody = Buffer.from(await req.arrayBuffer()); // 🔹 Convert `ArrayBuffer` to `Buffer`
     const sig = req.headers.get("stripe-signature");
 
     if (!sig) {
@@ -38,9 +41,10 @@ export async function POST(req: NextRequest) {
     try {
       event = stripe.webhooks.constructEvent(rawBody, sig, endpointSecret);
     } catch (err) {
-      console.error("❌ Stripe Webhook Signature Error:", err);
+      const errorMessage = err instanceof Error ? err.message : "Unknown error";
+      console.error("❌ Stripe Webhook Signature Error:", errorMessage);
       return NextResponse.json(
-        { error: `Webhook verification failed: ${err}` },
+        { error: `Webhook verification failed: ${errorMessage}` },
         { status: 400 }
       );
     }
@@ -49,13 +53,19 @@ export async function POST(req: NextRequest) {
 
     // ✅ Handle Stripe Events
     switch (event.type) {
+      case "invoice.payment_succeeded":
+        console.log("✅ Payment succeeded:", event.data.object);
+        break;
+
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
         console.log("🔥 Processing checkout.session.completed");
 
         const fullSession = await stripe.checkout.sessions.retrieve(
           session.id,
-          { expand: ["line_items.data.price", "customer"] }
+          {
+            expand: ["line_items.data.price", "customer"],
+          }
         );
 
         let customerId: string | null = null;
@@ -73,7 +83,7 @@ export async function POST(req: NextRequest) {
           );
         }
 
-        const metadata = session.metadata;
+        const metadata = session.metadata as { userId: string } | null;
         const priceId = fullSession.line_items?.data?.[0]?.price?.id;
 
         if (!metadata || !metadata.userId) {
@@ -92,7 +102,7 @@ export async function POST(req: NextRequest) {
           );
         }
 
-        let newSubscriptionTier = "free";
+        let newSubscriptionTier: "free" | "basic" | "premium" = "free";
         if (priceId === process.env.NEXT_PUBLIC_STRIPE_BASIC_PRICE_ID) {
           newSubscriptionTier = "basic";
         } else if (
@@ -131,9 +141,6 @@ export async function POST(req: NextRequest) {
       case "customer.subscription.created":
         console.log("✅ Subscription created:", event.data.object);
         break;
-      case "invoice.payment_succeeded":
-        console.log("✅ Payment succeeded:", event.data.object);
-        break;
       case "customer.subscription.deleted":
         console.log("✅ Subscription deleted:", event.data.object);
         break;
@@ -144,9 +151,11 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ message: "Webhook received" }, { status: 200 });
   } catch (error) {
-    console.error("❌ Webhook Processing Error:", error);
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    console.error("❌ Webhook Processing Error:", errorMessage);
     return NextResponse.json(
-      { error: `Internal Server Error: ${error}` },
+      { error: `Internal Server Error: ${errorMessage}` },
       { status: 500 }
     );
   }
