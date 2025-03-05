@@ -9,6 +9,7 @@ const isPublicRoute = createRouteMatcher([
   "/api/webhooks/clerk",
   "/api/updateUser",
   "/api/webhooks/stripe",
+  "/api/public/company",
   "/company/portal/(.*)", // ✅ Allow all employee portal pages
 ]);
 export default clerkMiddleware(async (auth, request) => {

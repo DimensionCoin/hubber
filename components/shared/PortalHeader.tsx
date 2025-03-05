@@ -13,7 +13,7 @@ const PortalHeader = () => {
     const fetchCompany = async () => {
       try {
         if (!id) return;
-        const response = await fetch(`/api/companies/${id}`);
+        const response = await fetch(`/api/public/company?companyId=${id}`);
         if (!response.ok) throw new Error("Failed to fetch company");
 
         const data = await response.json();
