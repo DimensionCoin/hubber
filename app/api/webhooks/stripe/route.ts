@@ -1,69 +1,69 @@
-import { stripe } from "@/lib/stripe";
-import User from "@/modals/user.modal";
-import { headers } from "next/headers";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { connect } from "@/db";
+import User from "@/modals/user.modal";
 
-// Force dynamic rendering for API routes
-export const dynamic = "force-dynamic";
+// ✅ Initialize Stripe
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: "2025-01-27.acacia",
+});
 
-// Buffer utility to get raw body with proper typing
-async function buffer(req: Request): Promise<Buffer> {
-  if (!req.body) {
-    throw new Error("Request body is null");
-  }
+// ✅ Stripe Webhook Secret
+const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
+// ✅ Disable Next.js automatic request body parsing
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
+
+// ✅ Function to Read Raw Request Body
+async function readRawBody(req: NextRequest): Promise<Buffer> {
   const chunks: Uint8Array[] = [];
-  const reader = req.body.getReader(); // Get ReadableStream reader
-  let done = false;
+  const reader = req.body?.getReader();
+  if (!reader) throw new Error("Request body is missing");
 
+  let done = false;
   while (!done) {
     const { value, done: streamDone } = await reader.read();
-    if (value) {
-      chunks.push(value); // value is Uint8Array
-    }
+    if (value) chunks.push(value);
     done = streamDone;
   }
-
   return Buffer.concat(chunks);
 }
 
-export async function POST(request: Request) {
+// ✅ Handle Stripe Webhook Events
+export async function POST(req: NextRequest) {
   try {
     await connect();
 
-    // Get headers
-    const reqHeaders = await headers();
-    const signature = reqHeaders.get("Stripe-Signature");
+    // ✅ Extract raw body
+    const rawBody = await readRawBody(req);
+    const sig = req.headers.get("stripe-signature");
 
-    if (!signature) {
-      console.error("❌ Missing Stripe-Signature header");
-      return new NextResponse("Missing Stripe-Signature", { status: 400 });
+    if (!sig) {
+      console.error("❌ Missing Stripe signature header");
+      return NextResponse.json(
+        { error: "Missing Stripe signature" },
+        { status: 400 }
+      );
     }
 
-    // Get raw body
-    const rawBody = await buffer(request);
     let event: Stripe.Event;
-
     try {
-      event = stripe.webhooks.constructEvent(
-        rawBody,
-        signature,
-        process.env.STRIPE_WEBHOOK_SECRET as string
+      event = stripe.webhooks.constructEvent(rawBody, sig, endpointSecret);
+    } catch (err: any) {
+      console.error("❌ Stripe Webhook Signature Error:", err.message);
+      return NextResponse.json(
+        { error: `Webhook verification failed: ${err.message}` },
+        { status: 400 }
       );
-    } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Unknown error";
-      console.error("❌ Stripe Webhook Signature Error:", errorMessage);
-      return new NextResponse(`Webhook verification failed: ${errorMessage}`, {
-        status: 400,
-      });
     }
 
     console.log(`✅ Received Event: ${event.type}`);
 
-    // Handle events
+    // ✅ Handle Stripe Events
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
@@ -85,7 +85,10 @@ export async function POST(request: Request) {
 
         if (!customerId) {
           console.error("❌ Missing customer ID:", fullSession.customer);
-          return new NextResponse("Missing customer ID", { status: 400 });
+          return NextResponse.json(
+            { error: "Missing customer ID" },
+            { status: 400 }
+          );
         }
 
         const metadata = session.metadata;
@@ -93,12 +96,18 @@ export async function POST(request: Request) {
 
         if (!metadata || !metadata.userId) {
           console.error("❌ Missing metadata.userId:", metadata);
-          return new NextResponse("Missing metadata userId", { status: 400 });
+          return NextResponse.json(
+            { error: "Missing metadata userId" },
+            { status: 400 }
+          );
         }
 
         if (!priceId) {
           console.error("❌ Missing Price ID");
-          return new NextResponse("Missing Price ID", { status: 400 });
+          return NextResponse.json(
+            { error: "Missing Price ID" },
+            { status: 400 }
+          );
         }
 
         let newSubscriptionTier = "free";
@@ -110,7 +119,10 @@ export async function POST(request: Request) {
           newSubscriptionTier = "premium";
         } else {
           console.error("❌ Unknown Price ID:", priceId);
-          return new NextResponse("Unknown Price ID", { status: 400 });
+          return NextResponse.json(
+            { error: "Unknown Price ID" },
+            { status: 400 }
+          );
         }
 
         const updatedUser = await User.findOneAndUpdate(
@@ -124,7 +136,10 @@ export async function POST(request: Request) {
 
         if (!updatedUser) {
           console.error("❌ User not found for clerkId:", metadata.userId);
-          return new NextResponse("User not found", { status: 400 });
+          return NextResponse.json(
+            { error: "User not found" },
+            { status: 400 }
+          );
         }
 
         console.log(`✅ User upgraded to ${newSubscriptionTier}`);
@@ -145,13 +160,12 @@ export async function POST(request: Request) {
         console.log(`ℹ️ Unhandled event type: ${event.type}`);
     }
 
-    return new NextResponse("Webhook received", { status: 200 });
-  } catch (error: unknown) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    console.error("❌ Webhook Processing Error:", errorMessage);
-    return new NextResponse(`Internal Server Error: ${errorMessage}`, {
-      status: 500,
-    });
+    return NextResponse.json({ message: "Webhook received" }, { status: 200 });
+  } catch (error: any) {
+    console.error("❌ Webhook Processing Error:", error.message);
+    return NextResponse.json(
+      { error: `Internal Server Error: ${error.message}` },
+      { status: 500 }
+    );
   }
 }
