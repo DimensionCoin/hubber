@@ -5,7 +5,7 @@ import User from "@/modals/user.modal";
 
 // ✅ Initialize Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2024-04-10", // ✅ Use latest Stripe API version
+  apiVersion: "2025-01-27.acacia", // ✅ Use latest Stripe API version
 });
 
 // ✅ Stripe Webhook Secret
@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
     await connect();
 
     // ✅ Get raw body as a Buffer
-    const rawBody = await req.arrayBuffer(); // ✅ Fix for Vercel
+    const rawBody = Buffer.from(await req.arrayBuffer()); // 🔹 Fix: Convert `ArrayBuffer` to `Buffer`
     const sig = req.headers.get("stripe-signature");
 
     if (!sig) {
@@ -36,11 +36,7 @@ export async function POST(req: NextRequest) {
 
     let event: Stripe.Event;
     try {
-      event = stripe.webhooks.constructEvent(
-        rawBody, // ✅ Now using arrayBuffer
-        sig,
-        endpointSecret
-      );
+      event = stripe.webhooks.constructEvent(rawBody, sig, endpointSecret);
     } catch (err) {
       console.error("❌ Stripe Webhook Signature Error:", err);
       return NextResponse.json(
