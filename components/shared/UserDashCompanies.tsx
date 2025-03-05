@@ -133,10 +133,12 @@ const UserDashCompanies = () => {
           <p className="text-zinc-400 max-w-md mb-6">
             {`We couldn't find any companies matching your search.`}
           </p>
-          <Button className="bg-teal-500 hover:bg-teal-600 text-white">
-            <Plus className="mr-2 h-4 w-4" />
-            Add New Company
-          </Button>
+          <Link href={"/create"}>
+            <Button className="bg-teal-500 hover:bg-teal-600 text-white">
+              <Plus className="mr-2 h-4 w-4" />
+              Add New Company
+            </Button>
+          </Link>
         </div>
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
