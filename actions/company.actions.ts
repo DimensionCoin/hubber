@@ -20,8 +20,8 @@ export async function createCompany(userId: string, companyData: any) {
       throw new Error("Invalid address format");
     }
 
-    // ✅ Create company in MongoDB **without `companyUrl` yet**
-    let newCompany = new Company({
+    // ✅ Create a new Mongoose document (Do NOT use `Company.create()`)
+    const newCompany = new Company({
       owner: user._id,
       name: companyData.name,
       phone: companyData.phone,
@@ -39,11 +39,13 @@ export async function createCompany(userId: string, companyData: any) {
       status: companyData.status || "active",
     });
 
-    // ✅ First, Save to get `_id`
-    newCompany = await newCompany.save();
+    // ✅ Save the document properly
+    await newCompany.save();
 
-    // ✅ Now that `_id` exists, generate `companyUrl` and update
-    newCompany.companyUrl = `${BASE_URL}/company/portal/${newCompany._id}`;
+    // ✅ Generate company URL AFTER saving (Now `_id` exists)
+    newCompany.companyUrl = `${process.env.NEXT_PUBLIC_URL}/company/portal/${newCompany._id}`;
+
+    // ✅ Save the new `companyUrl`
     await newCompany.save();
 
     console.log("✅ Company Created:", newCompany);
@@ -58,6 +60,7 @@ export async function createCompany(userId: string, companyData: any) {
     throw new Error("Failed to create company");
   }
 }
+
 
 // ✅ Fetch a company by ID
 export async function getCompanyById(companyId: string) {
