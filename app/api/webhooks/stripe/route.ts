@@ -5,7 +5,7 @@ import User from "@/modals/user.modal";
 
 // ✅ Initialize Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-01-27.acacia", // ✅ Use latest Stripe API version
+  apiVersion: "2025-02-24.acacia", // ✅ Use latest Stripe API version
 });
 
 // ✅ Stripe Webhook Secret
