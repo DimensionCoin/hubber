@@ -194,14 +194,14 @@ export default function MessagingPage() {
   };
 
   return (
-    <div className="relative min-h-screen bg-zinc-950 text-zinc-100">
+    <div className="relative min-h-full bg-zinc-950 text-zinc-100">
       <div className="absolute inset-0 bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950" />
       <div className="absolute inset-0 bg-[url(/grid.svg)] opacity-[0.02] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
 
-      <main className="relative pt-2 pb-6 px-4 md:px-6 max-w-7xl mx-auto">
+      <main className="relative pt-2  px- md:px-6 max-w-7xl mx-auto">
         {selectedChat ? (
           // Chat view
-          <div className="flex flex-col h-[calc(100vh-120px)] rounded-xl border border-zinc-800/50 bg-zinc-900/50 backdrop-blur-sm overflow-hidden">
+          <div className="flex flex-col h-[calc(100vh-60px)] rounded-xl border border-zinc-800/50 bg-zinc-900/50 backdrop-blur-sm overflow-hidden">
             {/* Chat header */}
             <div className="p-4 border-b border-zinc-800/50 flex items-center gap-3">
               <button
