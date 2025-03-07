@@ -1,16 +1,15 @@
 "use client";
 import {  Menu, MessageCircle,  } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Sidebar } from "./CompanySidebar";
+import Link from "next/link";
 
 interface HeaderProps {
   companyId?: string;
 }
 
 export function Header({  companyId }: HeaderProps) {
-  
 
   return (
     <header className="bg-zinc-900 sticky top-0 z-10">
@@ -37,9 +36,11 @@ export function Header({  companyId }: HeaderProps) {
           </Sheet>
         </div>
         <div className="flex items-center justify-center mt-2">
-          <Button>
-            <MessageCircle />
-          </Button>
+          <Link href={`/company/${companyId}/messages`}>
+            <Button>
+              <MessageCircle />
+            </Button>
+          </Link>
         </div>
       </div>
     </header>

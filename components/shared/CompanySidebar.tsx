@@ -106,11 +106,11 @@ export function Sidebar({ companyId }: SidebarProps) {
               </>
             )}
             <Link
-              href="#"
+              href={`/company/${companyId}/messages`}
               className="flex items-center gap-3 px-3 py-2 text-sm rounded-md text-zinc-300 hover:bg-zinc-800"
             >
               <FileText className="h-5 w-5 text-zinc-400" />
-              Documents
+              Messages
             </Link>
             <Link
               href="#"
