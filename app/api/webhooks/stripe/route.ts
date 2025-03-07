@@ -3,11 +3,10 @@ import Stripe from "stripe";
 import { connect } from "@/db";
 import User from "@/modals/user.modal";
 
-// ✅ Initialize Stripe
+// Initialize Stripe with the correct API version
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-02-24.acacia", // ✅ Use latest Stripe API version
+  apiVersion: "2025-02-24.acacia", // Updated to match expected version
 });
-
 // ✅ Stripe Webhook Secret
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
