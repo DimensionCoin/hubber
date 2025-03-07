@@ -12,7 +12,7 @@ import UserDashAnalytics from "@/components/shared/UserDashAnalytics";
 export default function Dashboard() {
   const { isAuthenticated } = useUserContext();
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useState("companies");
   // Fetch user companies from API
   useEffect(() => {
     async function fetchCompanies() {
@@ -56,23 +56,23 @@ export default function Dashboard() {
         <>
           {/* Main Dashboard Tabs */}
           <Tabs
-            defaultValue="overview"
+            defaultValue="companies"
             value={activeTab}
             onValueChange={setActiveTab}
             className="w-full"
           >
             <TabsList className="bg-zinc-800 border border-zinc-700 p-0.5 mb-6">
               <TabsTrigger
-                value="overview"
-                className="data-[state=active]:bg-zinc-900"
-              >
-                Overview
-              </TabsTrigger>
-              <TabsTrigger
                 value="companies"
                 className="data-[state=active]:bg-zinc-900"
               >
                 Companies
+              </TabsTrigger>
+              <TabsTrigger
+                value="overview"
+                className="data-[state=active]:bg-zinc-900"
+              >
+                Overview
               </TabsTrigger>
               <TabsTrigger
                 value="leads"

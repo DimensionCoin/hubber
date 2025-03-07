@@ -101,7 +101,7 @@ const UserDashOverview = () => {
   return (
     <div className="space-y-6">
       {/* Overview Metrics */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="bg-zinc-900 border-zinc-800">
           <CardHeader>
             <CardTitle className="text-sm font-medium text-zinc-400">

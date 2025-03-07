@@ -1,5 +1,5 @@
 "use client";
-import {  Menu,  } from "lucide-react";
+import {  Menu, MessageCircle,  } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -35,8 +35,11 @@ export function Header({  companyId }: HeaderProps) {
               <Sidebar companyId={companyId} />
             </SheetContent>
           </Sheet>
-
-         
+        </div>
+        <div className="flex items-center justify-center mt-2">
+          <Button>
+            <MessageCircle />
+          </Button>
         </div>
       </div>
     </header>

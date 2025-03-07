@@ -1,9 +1,9 @@
 // Sidebar.tsx
 import {
   LayoutDashboard,
-  Building2,
   ChartBar,
   User,
+  MessageCircle,
 } from "lucide-react";
 import Link from "next/link";
 import { FC } from "react";
@@ -24,7 +24,7 @@ const Sidebar: FC = () => {
           icon={<LayoutDashboard />}
           label="Dashboard"
         />
-        <NavLink href="/create" icon={<Building2 />} label="Create Company" />
+        <NavLink href="/messages" icon={<MessageCircle />} label="Messages" />
         <NavLink href="/analytics" icon={<ChartBar />} label="Analytics" />
         <NavLink href="/account" icon={<User />} label="Account" />
       </nav>
