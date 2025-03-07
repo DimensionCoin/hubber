@@ -28,7 +28,7 @@ const sampleMetrics = {
 };
 
 const CompanyKeyMetrics = () => {
-  const [isMetricsVisible, setIsMetricsVisible] = useState(false);
+  const [isMetricsVisible, setIsMetricsVisible] = useState(true);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-US", {
@@ -82,7 +82,7 @@ const CompanyKeyMetrics = () => {
           <div
             className="
               grid 
-              grid-cols-1 
+              grid-cols-2 
               sm:grid-cols-2 
               lg:grid-cols-4 
               gap-4 
