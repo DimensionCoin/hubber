@@ -103,24 +103,30 @@ const UserDashCompanies = () => {
         <div>
           <h2 className="text-2xl font-bold text-white">Your Companies</h2>
         </div>
-        <Link href={"/create"}>
-          <Button className="bg-teal-500 hover:bg-teal-600 text-white">
-            <Plus className="mr-2 h-4 w-4" />
-            Add New Company
-          </Button>
-        </Link>
       </div>
 
-      {/* Search Bar */}
-      <div className="relative w-full max-w-lg mb-8">
-        <Search className="absolute left-3 top-2.5 h-5 w-5 text-zinc-500" />
-        <Input
-          type="text"
-          placeholder="Search for a company..."
-          className="w-full pl-10 bg-zinc-800 border-zinc-700 focus-visible:ring-teal-500"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
+      <div className="flex items-center gap-2 md:gap-4">
+        {/* Search Bar - Takes more space */}
+        <div className="relative flex-1 md:flex-[2] max-w-lg">
+          <Search className="absolute left-3 top-2.5 h-5 w-5 text-zinc-500" />
+          <Input
+            type="text"
+            placeholder="Search for a company..."
+            className="w-full pl-10 bg-zinc-800 border-zinc-700 focus-visible:ring-teal-500"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+
+        {/* Add New Company Button - Icon on mobile, full button on md+ */}
+        <div className="flex-shrink-0">
+          <Link href="/create">
+            <Button className="bg-teal-500 hover:bg-teal-600 text-white w-10 h-10 md:w-auto md:px-4 flex items-center justify-center">
+              <Plus className="h-4 w-4 md:mr-2" />
+              <span className="hidden md:inline">Add New Company</span>
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* Display Companies or No Results Message */}

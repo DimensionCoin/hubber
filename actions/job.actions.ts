@@ -1,6 +1,7 @@
 import Job from "@/modals/job.model";
 import Company from "@/modals/company.model";
 import { connect } from "@/db";
+import { Types } from "mongoose";
 
 /**
  * ✅ Get all jobs
@@ -32,7 +33,7 @@ export const createJob = async (jobData: any) => {
 
     // Ensure client exists in the company's clients array
     const clientExists = company.clients.some(
-      (client: { _id: string }) => client._id.toString() === jobData.clientId
+      (client: Types.ObjectId) => client.toString() === jobData.clientId
     );
     if (!clientExists) throw new Error("Client not found in this company");
 

@@ -3,29 +3,48 @@ import {
   createCompany,
   getUserCompanies,
   addClientToCompany,
+  getAllCompanies,
 } from "@/actions/company.actions";
 import { auth } from "@clerk/nextjs/server";
-// ✅ Get all companies for a user
-export async function GET() {
-  try {
-    const session = await auth();
-    if (!session || !session.userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
 
-    const companies = await getUserCompanies(session.userId);
-    return NextResponse.json(companies, { status: 200 });
-  } catch (error) {
-    console.error("❌ Error fetching companies:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch companies" },
-      { status: 500 }
-    );
+// ✅ Get companies (user-specific or all)
+export async function GET(req: NextRequest) {
+  const url = new URL(req.url);
+  const fetchAll = url.searchParams.get("all") === "true";
+
+  if (fetchAll) {
+    // Public access: Fetch all companies without requiring authentication
+    try {
+      const companies = await getAllCompanies();
+      return NextResponse.json(companies, { status: 200 });
+    } catch (error) {
+      console.error("❌ Error fetching all companies:", error);
+      return NextResponse.json(
+        { error: "Failed to fetch companies" },
+        { status: 500 }
+      );
+    }
+  } else {
+    // User-specific companies (requires authentication)
+    try {
+      const session = await auth();
+      if (!session || !session.userId) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+
+      const companies = await getUserCompanies(session.userId);
+      return NextResponse.json(companies, { status: 200 });
+    } catch (error) {
+      console.error("❌ Error fetching user companies:", error);
+      return NextResponse.json(
+        { error: "Failed to fetch companies" },
+        { status: 500 }
+      );
+    }
   }
 }
 
-
-// ✅ Create a new company
+// ✅ Create a new company (unchanged)
 export async function POST(req: NextRequest) {
   try {
     const session = await auth();
@@ -73,7 +92,7 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// ✅ Add a client to an existing company
+// ✅ Add a client to an existing company (unchanged)
 export async function PUT(req: NextRequest) {
   try {
     const session = await auth();

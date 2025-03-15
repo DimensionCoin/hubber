@@ -1,9 +1,16 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true, // ✅ Helps catch common React issues
-  swcMinify: true, // ✅ Optimizes JavaScript with SWC
+  reactStrictMode: true,
+  swcMinify: true,
   images: {
-    domains: ["img.clerk.com"], // ✅ Allow Clerk's image domain
+    domains: ["img.clerk.com"], // Keep Clerk domain
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "cdn.discordapp.com",
+        pathname: "/attachments/**", // Matches your Discord URL pattern
+      },
+    ],
   },
 };
 

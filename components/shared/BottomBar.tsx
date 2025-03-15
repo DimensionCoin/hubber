@@ -4,6 +4,7 @@ import {
   ChartBar,
   User,
   MessageCircle,
+  Search,
 } from "lucide-react";
 import Link from "next/link";
 import { FC } from "react";
@@ -14,7 +15,7 @@ const BottomBar: FC = () => {
     <div className="fixed bottom-0 left-0 w-full bg-zinc-950/80 border-t border-zinc-800 px-3 py-1 flex justify-around md:hidden">
       <BottomNavLink href="/dashboard" icon={<LayoutDashboard />} />
       <BottomNavLink href="/messages" icon={<MessageCircle />} />
-      <BottomNavLink href="/analytics" icon={<ChartBar />} />
+      <BottomNavLink href="/search" icon={<Search />} />
       <BottomNavLink href="/account" icon={<User />} />
     </div>
   );

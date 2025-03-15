@@ -11,10 +11,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import { Building, Mail, MapPin, ArrowLeft } from "lucide-react";
 import toast from "react-hot-toast";
 import UpgradePlan from "@/components/shared/UpgradePlan";
-
-
 
 const businessTypes = [
   "construction",
@@ -42,7 +51,6 @@ interface AddressSuggestion {
 }
 
 export default function CreateCompanyForm() {
-
   const { tier, companyCount } = useUserContext();
   const router = useRouter();
   const [form, setForm] = useState({
@@ -109,7 +117,45 @@ export default function CreateCompanyForm() {
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+
+    // Handle nested address fields
+    if (name === "city") {
+      setForm({
+        ...form,
+        address: {
+          ...form.address,
+          city: value,
+        },
+      });
+    } else if (name === "stateOrProvince") {
+      setForm({
+        ...form,
+        address: {
+          ...form.address,
+          stateOrProvince: value,
+        },
+      });
+    } else if (name === "postalCodeOrZip") {
+      setForm({
+        ...form,
+        address: {
+          ...form.address,
+          postalCodeOrZip: value,
+        },
+      });
+    } else if (name === "country") {
+      setForm({
+        ...form,
+        address: {
+          ...form.address,
+          country: value,
+        },
+      });
+    } else {
+      // Handle regular fields
+      setForm({ ...form, [name]: value });
+    }
   };
 
   const handleBusinessTypeChange = (value: string) => {
@@ -165,134 +211,266 @@ export default function CreateCompanyForm() {
   };
 
   if (!canCreateCompany) {
-    return <UpgradePlan title="Your Tier Doesn’t Allow More Than 1 Company" />;
+    return <UpgradePlan title="Your Tier Doesn't Allow More Than 1 Company" />;
   }
 
-
   return (
-    <div className="max-w-3xl mx-auto p-6 bg-zinc-900 rounded-lg shadow-lg mb-14">
-      <h1 className="text-2xl font-bold text-white mb-4">
-        Create a New Company
-      </h1>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <label className="block text-sm font-medium text-white">
-          Company Name
-        </label>
-        <Input name="name" value={form.name} onChange={handleChange} required />
+    <div className="container mx-auto p-4 max-w-4xl">
+      <Button
+        variant="ghost"
+        className="mb-6 text-zinc-400 hover:text-white"
+        onClick={() => router.push("/dashboard")}
+      >
+        <ArrowLeft className="mr-2 h-4 w-4" />
+        Back to Dashboard
+      </Button>
 
-        <label className="block text-sm font-medium text-white">Email</label>
-        <Input
-          name="email"
-          value={form.email}
-          onChange={handleChange}
-          required
-        />
-
-        <label className="block text-sm font-medium text-white">
-          Phone Number
-        </label>
-        <Input
-          name="phone"
-          value={form.phone}
-          onChange={handleChange}
-          required
-        />
-
-        <label className="block text-sm font-medium text-white">
-          Business Type
-        </label>
-        <Select onValueChange={handleBusinessTypeChange}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select a business type" />
-          </SelectTrigger>
-          <SelectContent>
-            {businessTypes.map((type) => (
-              <SelectItem key={type} value={type}>
-                {type.charAt(0).toUpperCase() + type.slice(1)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <label className="block text-sm font-medium text-white">Address</label>
-        <Input
-          name="address"
-          value={addressInput} // ✅ Only displays street address
-          onChange={handleAddressChange}
-          placeholder="Start typing your address..."
-          required
-        />
-
-        {suggestions.length > 0 && (
-          <ul className="bg-zinc-800 rounded-lg mt-2 p-2 max-h-40 overflow-auto">
-            {suggestions.map((place, index) => (
-              <li
-                key={index}
-                className="cursor-pointer p-2 hover:bg-zinc-700 text-white"
-                onClick={() => handleSelectAddress(place)}
-              >
-                {place.display_name}
-              </li>
-            ))}
-          </ul>
-        )}
-
-        <label className="block text-sm font-medium text-white">City</label>
-        <Input
-          name="city"
-          value={form.address.city}
-          onChange={handleChange}
-          required
-        />
-
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-white">
-              State/Province
-            </label>
-            <Input
-              name="stateOrProvince"
-              value={form.address.stateOrProvince}
-              onChange={handleChange}
-              required
-            />
+      <Card className="bg-zinc-900 border-zinc-800">
+        <CardHeader className="pb-4">
+          <div className="flex items-center gap-2 mb-2">
+            <Badge className="bg-teal-500 text-white hover:bg-teal-600">
+              New Company
+            </Badge>
+            <Badge className="bg-zinc-700 text-zinc-200">
+              {tier.charAt(0).toUpperCase() + tier.slice(1)} Tier
+            </Badge>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-white">
-              Postal Code / Zip
-            </label>
-            <Input
-              name="postalCodeOrZip"
-              value={form.address.postalCodeOrZip}
-              onChange={handleChange}
-              required
-            />
-          </div>
-        </div>
+          <CardTitle className="text-2xl font-bold text-white">
+            Create a New Company
+          </CardTitle>
+          <CardDescription className="text-zinc-400">
+            Add a new company to your dashboard. You can create{" "}
+            {tierLimits[tier]}{" "}
+            {tierLimits[tier] === 1 ? "company" : "companies"} on your current
+            plan.
+          </CardDescription>
+        </CardHeader>
 
-        <label className="block text-sm font-medium text-white">Country</label>
-        <Input
-          name="country"
-          value={form.address.country}
-          onChange={handleChange}
-          required
-        />
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Company Information Section */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium text-white flex items-center gap-2">
+                <Building className="h-5 w-5 text-teal-400" />
+                Company Information
+              </h3>
 
-        {!canCreateCompany && (
-          <div className="mb-4 p-3 bg-red-500 text-white text-center rounded">
-            You have reached your company limit for your current subscription
-            tier.
-          </div>
-        )}
+              <div className="space-y-4">
+                <div>
+                  <label
+                    htmlFor="name"
+                    className="block text-sm font-medium text-zinc-400 mb-1"
+                  >
+                    Company Name <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    id="name"
+                    name="name"
+                    value={form.name}
+                    onChange={handleChange}
+                    className="bg-zinc-800 border-zinc-700 focus-visible:ring-teal-500"
+                    required
+                  />
+                </div>
 
-        <Button
-          type="submit"
-          className="w-full bg-teal-500 hover:bg-teal-400"
-          disabled={loading || !canCreateCompany}
-        >
-          {loading ? "Creating..." : "Create Company"}
-        </Button>
-      </form>
+                <div>
+                  <label
+                    htmlFor="email"
+                    className="block text-sm font-medium text-zinc-400 mb-1"
+                  >
+                    Email <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    value={form.email}
+                    onChange={handleChange}
+                    className="bg-zinc-800 border-zinc-700 focus-visible:ring-teal-500"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="phone"
+                    className="block text-sm font-medium text-zinc-400 mb-1"
+                  >
+                    Phone Number <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    id="phone"
+                    name="phone"
+                    value={form.phone}
+                    onChange={handleChange}
+                    className="bg-zinc-800 border-zinc-700 focus-visible:ring-teal-500"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="businessType"
+                    className="block text-sm font-medium text-zinc-400 mb-1"
+                  >
+                    Business Type <span className="text-red-500">*</span>
+                  </label>
+                  <Select
+                    onValueChange={handleBusinessTypeChange}
+                    value={form.businessType}
+                  >
+                    <SelectTrigger className="bg-zinc-800 border-zinc-700">
+                      <SelectValue placeholder="Select a business type" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-zinc-800 border-zinc-700">
+                      {businessTypes.map((type) => (
+                        <SelectItem
+                          key={type}
+                          value={type}
+                          className="focus:bg-zinc-700"
+                        >
+                          {type.charAt(0).toUpperCase() + type.slice(1)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+
+            <Separator className="bg-zinc-800" />
+
+            {/* Address Section */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium text-white flex items-center gap-2">
+                <MapPin className="h-5 w-5 text-teal-400" />
+                Company Address
+              </h3>
+
+              <div className="space-y-4">
+                <div className="relative">
+                  <label
+                    htmlFor="address"
+                    className="block text-sm font-medium text-zinc-400 mb-1"
+                  >
+                    Address <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    id="address"
+                    name="address"
+                    value={addressInput}
+                    onChange={handleAddressChange}
+                    placeholder="Start typing your address..."
+                    className="bg-zinc-800 border-zinc-700 focus-visible:ring-teal-500"
+                    required
+                  />
+
+                  {suggestions.length > 0 && (
+                    <ul className="absolute z-10 w-full mt-1 bg-zinc-800 rounded-lg p-2 max-h-40 overflow-auto border border-zinc-700 shadow-lg">
+                      {suggestions.map((place, index) => (
+                        <li
+                          key={index}
+                          className="cursor-pointer p-2 hover:bg-zinc-700 text-zinc-300 text-sm rounded"
+                          onClick={() => handleSelectAddress(place)}
+                        >
+                          {place.display_name}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="city"
+                    className="block text-sm font-medium text-zinc-400 mb-1"
+                  >
+                    City <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    id="city"
+                    name="city"
+                    value={form.address.city}
+                    onChange={handleChange}
+                    className="bg-zinc-800 border-zinc-700 focus-visible:ring-teal-500"
+                    required
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label
+                      htmlFor="stateOrProvince"
+                      className="block text-sm font-medium text-zinc-400 mb-1"
+                    >
+                      State/Province <span className="text-red-500">*</span>
+                    </label>
+                    <Input
+                      id="stateOrProvince"
+                      name="stateOrProvince"
+                      value={form.address.stateOrProvince}
+                      onChange={handleChange}
+                      className="bg-zinc-800 border-zinc-700 focus-visible:ring-teal-500"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="postalCodeOrZip"
+                      className="block text-sm font-medium text-zinc-400 mb-1"
+                    >
+                      Postal Code / Zip <span className="text-red-500">*</span>
+                    </label>
+                    <Input
+                      id="postalCodeOrZip"
+                      name="postalCodeOrZip"
+                      value={form.address.postalCodeOrZip}
+                      onChange={handleChange}
+                      className="bg-zinc-800 border-zinc-700 focus-visible:ring-teal-500"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="country"
+                    className="block text-sm font-medium text-zinc-400 mb-1"
+                  >
+                    Country <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    id="country"
+                    name="country"
+                    value={form.address.country}
+                    onChange={handleChange}
+                    className="bg-zinc-800 border-zinc-700 focus-visible:ring-teal-500"
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+          </form>
+        </CardContent>
+
+        <CardFooter className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-zinc-800">
+          <Button
+            variant="outline"
+            className="w-full sm:w-auto border-zinc-700 hover:bg-zinc-800 text-zinc-400"
+            onClick={() => router.push("/dashboard")}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            className="w-full sm:w-auto bg-teal-500 hover:bg-teal-600 text-white"
+            disabled={loading || !canCreateCompany}
+            onClick={handleSubmit}
+          >
+            {loading ? "Creating..." : "Create Company"}
+          </Button>
+        </CardFooter>
+      </Card>
     </div>
   );
 }

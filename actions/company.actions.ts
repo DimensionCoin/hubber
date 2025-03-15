@@ -1,6 +1,8 @@
+// actions/company.actions.ts
 import { connect } from "@/db";
 import User from "@/modals/user.modal";
 import Company from "@/modals/company.model";
+import { v4 as uuidv4 } from "uuid";
 
 const BASE_URL = process.env.NEXT_PUBLIC_URL || "http://localhost:3000";
 
@@ -18,7 +20,7 @@ export async function createCompany(userId: string, companyData: any) {
       throw new Error("Invalid address format");
     }
 
-    const newCompany = await Company.create({
+    const companyPayload = {
       owner: user._id,
       name: companyData.name,
       phone: companyData.phone,
@@ -35,24 +37,36 @@ export async function createCompany(userId: string, companyData: any) {
       clients: companyData.clients || [],
       totalRevenue: companyData.totalRevenue || 0,
       status: companyData.status || "active",
-    });
+      publicId: uuidv4(), // Explicitly set publicId since schema default isn’t working
+    };
 
-    const companyUrl = `${process.env.NEXT_PUBLIC_URL}/company/portal/${newCompany._id}`;
-    await Company.findByIdAndUpdate(newCompany._id, { companyUrl });
+    console.log("🚀 Company payload:", JSON.stringify(companyPayload, null, 2));
 
-    console.log("✅ Company Created:", newCompany);
+    const newCompany = await Company.create(companyPayload);
+    console.log(
+      "✅ New company after create:",
+      JSON.stringify(newCompany, null, 2)
+    );
+
+    const companyUrl = `${BASE_URL}/company/portal/${newCompany._id.toString()}`;
+    const updatedCompany = await Company.findByIdAndUpdate(
+      newCompany._id,
+      { companyUrl },
+      { new: true }
+    );
+    console.log("✅ Updated company:", JSON.stringify(updatedCompany, null, 2));
 
     user.companies.push(newCompany._id);
     await user.save();
 
-    return JSON.parse(JSON.stringify(newCompany));
+    return JSON.parse(JSON.stringify(updatedCompany));
   } catch (error) {
     console.error("❌ Error creating company:", error);
     throw new Error("Failed to create company");
   }
 }
 
-// ✅ Fetch a company by ID
+// ✅ Fetch a company by ID (MongoDB _id)
 export async function getCompanyById(companyId: string) {
   try {
     await connect();
@@ -60,6 +74,7 @@ export async function getCompanyById(companyId: string) {
     const company = await Company.findById(companyId);
     if (!company) throw new Error("Company not found");
 
+    console.log("✅ Fetched company by ID:", JSON.stringify(company, null, 2));
     return JSON.parse(JSON.stringify(company));
   } catch (error) {
     console.error("❌ Error fetching company by ID:", error);
@@ -75,8 +90,9 @@ export async function getUserCompanies(userId: string) {
     const user = await User.findOne({ clerkId: userId }).populate("companies");
     if (!user) throw new Error("User not found");
 
-    return user.companies.map((company: any) => ({
+    const companies = user.companies.map((company: any) => ({
       _id: company._id.toString(),
+      publicId: company.publicId, // Include publicId
       name: company.name,
       phone: company.phone,
       email: company.email,
@@ -93,10 +109,14 @@ export async function getUserCompanies(userId: string) {
       totalRevenue: company.totalRevenue || 0,
       status: company.status || "inactive",
       companyUrl:
-        company.companyUrl || `${BASE_URL}/company/portal/${company._id}`,
+        company.companyUrl ||
+        `${BASE_URL}/company/portal/${company._id.toString()}`,
       createdAt: company.createdAt,
       updatedAt: company.updatedAt,
     }));
+
+    console.log("✅ User companies:", JSON.stringify(companies, null, 2));
+    return companies;
   } catch (error) {
     console.error("❌ Error fetching user companies:", error);
     throw new Error("Failed to fetch companies");
@@ -123,7 +143,6 @@ export async function addClientToCompany(
   try {
     await connect();
 
-    // ✅ Validate client data
     if (
       !clientData.firstName ||
       !clientData.lastName ||
@@ -137,7 +156,6 @@ export async function addClientToCompany(
       throw new Error("Missing required client fields");
     }
 
-    // ✅ Find company by ID and push new client to the clients array
     const updatedCompany = await Company.findByIdAndUpdate(
       companyId,
       { $push: { clients: clientData } },
@@ -148,11 +166,132 @@ export async function addClientToCompany(
       throw new Error("Company not found");
     }
 
-    console.log("✅ Client added to company:", updatedCompany);
-
+    console.log(
+      "✅ Client added to company:",
+      JSON.stringify(updatedCompany, null, 2)
+    );
     return JSON.parse(JSON.stringify(updatedCompany));
   } catch (error) {
     console.error("❌ Error adding client to company:", error);
     throw new Error("Failed to add client");
+  }
+}
+
+// ✅ Get all companies
+export async function getAllCompanies() {
+  try {
+    await connect();
+
+    const companies = await Company.find({}).select(
+      "_id publicId name phone email businessType address totalRevenue status companyUrl createdAt updatedAt"
+    );
+
+    const mappedCompanies = companies.map((company) => ({
+      _id: company._id.toString(),
+      publicId: company.publicId, // Include publicId
+      name: company.name,
+      phone: company.phone,
+      email: company.email,
+      businessType: company.businessType || "N/A",
+      address: {
+        street: company.address?.street || "",
+        city: company.address?.city || "",
+        stateOrProvince: company.address?.stateOrProvince || "",
+        postalCodeOrZip: company.address?.postalCodeOrZip || "",
+        country: company.address?.country || "",
+      },
+      totalRevenue: company.totalRevenue || 0,
+      status: company.status || "inactive",
+      createdAt: company.createdAt,
+      updatedAt: company.updatedAt,
+    }));
+
+    return mappedCompanies;
+  } catch (error) {
+    console.error("❌ Error fetching all companies:", error);
+    throw new Error("Failed to fetch all companies");
+  }
+}
+
+export async function getCompanyByPublicId(publicId: string) {
+  try {
+    await connect();
+    console.log(`Fetching company with publicId: ${publicId}`);
+
+    const company = await Company.findOne({ publicId });
+    if (!company) {
+      console.log(`No company found with publicId: ${publicId}`);
+      throw new Error("Company not found");
+    }
+
+    const companyData = {
+      publicId: company.publicId,
+      name: company.name,
+      logo: company.logo || undefined,
+      tagline: company.tagline || undefined,
+      description: company.description || undefined,
+      businessType: company.businessType || "N/A",
+      foundedYear: company.foundedYear || undefined,
+      address: {
+        street: company.address.street || "",
+        city: company.address.city || "",
+        stateOrProvince: company.address.stateOrProvince || "",
+        postalCodeOrZip: company.address.postalCodeOrZip || "",
+        country: company.address.country || "",
+      },
+      phone: company.phone || "",
+      email: company.email || "",
+      website: company.website || undefined,
+      socialMedia: company.socialMedia || undefined,
+      services: company.services || undefined,
+      images: company.images || undefined,
+      testimonials: company.testimonials || undefined,
+      tags: company.tags || undefined,
+    };
+
+    console.log(
+      "✅ Fetched company by publicId:",
+      JSON.stringify(companyData, null, 2)
+    );
+    return companyData;
+  } catch (error) {
+    console.error(`❌ Error fetching company by publicId ${publicId}:`, error);
+    throw new Error("Failed to fetch company");
+  }
+}
+
+// ✅ Update a company by ID
+export async function updateCompany(companyId: string, updateData: any) {
+  try {
+    await connect();
+    const updatedCompany = await Company.findByIdAndUpdate(
+      companyId,
+      { $set: updateData },
+      { new: true, runValidators: true }
+    );
+    if (!updatedCompany) {
+      throw new Error("Company not found");
+    }
+    console.log("✅ Updated company:", JSON.stringify(updatedCompany, null, 2));
+    return JSON.parse(JSON.stringify(updatedCompany));
+  } catch (error) {
+    console.error("❌ Error updating company:", error);
+    throw new Error("Failed to update company");
+  }
+}
+
+// ✅ Delete a company by ID
+export async function deleteCompany(companyId: string) {
+  try {
+    await connect();
+    const deletedCompany = await Company.findByIdAndDelete(companyId);
+    if (!deletedCompany) {
+      throw new Error("Company not found");
+    }
+    console.log("✅ Deleted company:", companyId);
+    return { message: "Company successfully deleted", companyId };
+  } catch (error) {
+    console.error("❌ Error deleting company:", error);
+    throw new Error("Failed to delete company");
   }
 }
